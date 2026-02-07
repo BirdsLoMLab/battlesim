@@ -1,0 +1,2335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoM Battle Simulator - Alpha 3</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1em;
+        }
+
+        .alpha-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #ccc;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 2px solid #667eea;
+            border-radius: 0 12px 12px 12px;
+            background: #fafafa;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            font-weight: 600;
+        }
+
+        .subsection-title {
+            font-size: 1em;
+            color: #764ba2;
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 0.85em;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .pal-effect {
+            font-size: 0.8em;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85em;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #000;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .import-export-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .import-export-row input[type="file"] {
+            display: none;
+        }
+
+        /* OCR Import Styles */
+        .ocr-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f4fd 0%, #d1e8ff 100%);
+            border-radius: 12px;
+            border: 2px dashed #667eea;
+        }
+
+        .ocr-section.collapsed {
+            padding: 15px;
+            background: #f5f5f5;
+        }
+
+        .ocr-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ocr-title::before {
+            content: '📸';
+        }
+
+        .ocr-title::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s;
+        }
+
+        .ocr-section.collapsed .ocr-title::after {
+            transform: rotate(-90deg);
+        }
+
+        .ocr-content {
+            display: block;
+        }
+
+        .ocr-section.collapsed .ocr-content {
+            display: none;
+        }
+
+        .ocr-mode-select {
+            margin-bottom: 15px;
+        }
+
+        .ocr-mode-select label {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        .upload-zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-zone.has-file {
+            border-color: #51cf66;
+            background: #e8f9ed;
+        }
+
+        .upload-zone.processing {
+            border-color: #ffc107;
+            background: #fff8e1;
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-zone .icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .upload-zone .label {
+            font-size: 0.75em;
+            color: #666;
+        }
+
+        .upload-zone .status {
+            font-size: 0.7em;
+            margin-top: 5px;
+            color: #888;
+        }
+
+        .upload-zone.has-file .status {
+            color: #37b24d;
+        }
+
+        .ocr-progress {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .ocr-progress.active {
+            display: block;
+        }
+
+        .ocr-progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .ocr-status {
+            font-size: 0.85em;
+            color: #666;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .ocr-results {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.8em;
+            display: none;
+        }
+
+        .ocr-results.active {
+            display: block;
+        }
+
+        .ocr-results h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .ocr-stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ocr-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .ocr-btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .results-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            color: white;
+        }
+
+        .results-section h3 {
+            color: #e94560;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .battle-display {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .fighter-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .fighter-card h4 {
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+
+        .hp-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .hp-fill.enemy {
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+        }
+
+        .vs-badge {
+            font-size: 2em;
+            color: #e94560;
+            font-weight: bold;
+        }
+
+        .graph-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .graph-container h4 {
+            color: #ffc107;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        .battle-log {
+            background: #000;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+
+        .battle-log .damage { color: #ff6b6b; }
+        .battle-log .heal { color: #51cf66; }
+        .battle-log .crit { color: #ffd43b; }
+        .battle-log .skill { color: #74c0fc; }
+        .battle-log .time { color: #868e96; }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 1.3em;
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.8em;
+            color: #aaa;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.9em;
+            color: #856404;
+        }
+
+        .info-box.info {
+            background: #e8f4fd;
+            border-color: #2196F3;
+            color: #0d47a1;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+            .battle-display {
+                grid-template-columns: 1fr;
+            }
+            .vs-badge {
+                font-size: 1.5em;
+            }
+        }
+
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible::before {
+            content: '▼ ';
+            font-size: 0.8em;
+        }
+
+        .collapsible.collapsed::before {
+            content: '▶ ';
+        }
+
+        .collapse-content {
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+
+        .collapse-content.collapsed {
+            max-height: 0 !important;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚔️ Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3</span></h1>
+            <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
+        </div>
+
+        <div class="content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('player')">👤 Player</button>
+                <button class="tab" onclick="showTab('enemy')">👹 Enemy</button>
+                <button class="tab" onclick="showTab('equipment')">🎒 Equipment</button>
+                <button class="tab" onclick="showTab('skills')">⚡ Skills</button>
+            </div>
+
+            <!-- Player Tab -->
+            <div id="tab-player" class="tab-content active">
+                <div class="section-title">Class Selection</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="playerClass">Class</label>
+                        <select id="playerClass">
+                            <option value="sage">Martial Sage</option>
+                            <option value="other" disabled>Other Classes (Coming Soon)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="playerLevel">Level</label>
+                        <input type="number" id="playerLevel" value="180" min="1" max="220">
+                    </div>
+                </div>
+
+                <div class="info-box info">
+                    <strong>Martial Sage:</strong> DEF, Counter, DMG RES, Shield specialist. 
+                    <br><strong>Active:</strong> Blades Reunion (15s CD) - 12580% AoE DMG, -40% Counter DMG RES for 8s, counters deal +1% player current HP.
+                    <br><strong>Passives:</strong> Restore 8% Max HP every 5s | Shield (8% Max HP) every 10s for 5s
+                </div>
+
+                <div class="section-title">Core Stats</div>
+                <div class="input-grid input-grid-4">
+                    <div class="input-group">
+                        <label for="playerATK">ATK (Millions)</label>
+                        <input type="number" id="playerATK" value="5000" step="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="playerHP">HP (Billions)</label>
+                        <input type="number" id="playerHP" value="1500" step="10">
+                    </div>
+                    <div class="input-group">
+                        <label for="playerDEF">DEF (Millions)</label>
+                        <input type="number" id="playerDEF" value="2000" step="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="playerATKSPD">ATK SPD</label>
+                        <input type="number" id="playerATKSPD" value="3.21" step="0.01">
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible" onclick="toggleCollapse('playerMultipliers')">Multipliers</div>
+                <div id="playerMultipliers" class="collapse-content">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="playerBasicATKMult">Basic ATK Mult %</label>
+                            <input type="number" id="playerBasicATKMult" value="5000" step="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerComboMult">Combo Mult %</label>
+                            <input type="number" id="playerComboMult" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCounterMult">Counter Mult %</label>
+                            <input type="number" id="playerCounterMult" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCritDMG">Crit DMG %</label>
+                            <input type="number" id="playerCritDMG" value="200" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerSkillDMG">Skill DMG %</label>
+                            <input type="number" id="playerSkillDMG" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerSkillCritDMG">Skill Crit DMG %</label>
+                            <input type="number" id="playerSkillCritDMG" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerPalDMG">Pal DMG %</label>
+                            <input type="number" id="playerPalDMG" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerBossDMG">Boss DMG %</label>
+                            <input type="number" id="playerBossDMG" value="0" step="10">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible" onclick="toggleCollapse('playerProcRates')">Proc Rates</div>
+                <div id="playerProcRates" class="collapse-content">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="playerCombo">Combo %</label>
+                            <input type="number" id="playerCombo" value="50" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCounter">Counter %</label>
+                            <input type="number" id="playerCounter" value="50" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCritRate">Crit Rate %</label>
+                            <input type="number" id="playerCritRate" value="50" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerSkillCrit">Skill Crit %</label>
+                            <input type="number" id="playerSkillCrit" value="50" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerStun">Stun %</label>
+                            <input type="number" id="playerStun" value="0" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerLaunch">Launch %</label>
+                            <input type="number" id="playerLaunch" value="0" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerEvasion">Evasion %</label>
+                            <input type="number" id="playerEvasion" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerHealingRate">Healing Rate %</label>
+                            <input type="number" id="playerHealingRate" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerHealingAmount">Healing Amount % HP</label>
+                            <input type="number" id="playerHealingAmount" value="0" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('playerResistances')">Resistances</div>
+                <div id="playerResistances" class="collapse-content collapsed">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="playerDMGRES">DMG RES %</label>
+                            <input type="number" id="playerDMGRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerBasicATKRES">Basic ATK RES %</label>
+                            <input type="number" id="playerBasicATKRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerComboRES">Combo DMG RES %</label>
+                            <input type="number" id="playerComboRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCounterRES">Counter DMG RES %</label>
+                            <input type="number" id="playerCounterRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerSkillRES">Skill DMG RES %</label>
+                            <input type="number" id="playerSkillRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerPalRES">Pal DMG RES %</label>
+                            <input type="number" id="playerPalRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerBossRES">Boss DMG RES %</label>
+                            <input type="number" id="playerBossRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCritRES">Crit RES %</label>
+                            <input type="number" id="playerCritRES" value="50" step="1" min="50">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('playerIgnore')">Ignore Stats</div>
+                <div id="playerIgnore" class="collapse-content collapsed">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="playerIgnoreEvasion">Ignore Evasion %</label>
+                            <input type="number" id="playerIgnoreEvasion" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerIgnoreCombo">Ignore Combo %</label>
+                            <input type="number" id="playerIgnoreCombo" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerIgnoreCounter">Ignore Counter %</label>
+                            <input type="number" id="playerIgnoreCounter" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerIgnoreCrit">Ignore Crit %</label>
+                            <input type="number" id="playerIgnoreCrit" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerIgnoreStun">Ignore Stun %</label>
+                            <input type="number" id="playerIgnoreStun" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerIgnoreLaunch">Ignore Launch %</label>
+                            <input type="number" id="playerIgnoreLaunch" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerIgnoreRegen">Ignore Regen %</label>
+                            <input type="number" id="playerIgnoreRegen" value="0" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('playerSustain')">Sustain & CDR</div>
+                <div id="playerSustain" class="collapse-content collapsed">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="playerRegen">Regeneration %/sec</label>
+                            <input type="number" id="playerRegen" value="0" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerControlRES">Control Duration RES %</label>
+                            <input type="number" id="playerControlRES" value="0" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="playerCDR">Cooldown Reduction %</label>
+                            <input type="number" id="playerCDR" value="0" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player Import/Export -->
+                <div class="import-export-row">
+                    <button class="btn btn-small btn-success" onclick="exportConfig('player')">📥 Export Player</button>
+                    <input type="file" id="importPlayerFile" accept=".json" onchange="importConfig('player')">
+                    <button class="btn btn-small btn-outline" onclick="document.getElementById('importPlayerFile').click()">📤 Import Player</button>
+                    <button class="btn btn-small btn-warning" onclick="resetFields('player')">🔄 Reset Player</button>
+                </div>
+
+                <!-- OCR Screenshot Import -->
+                <div class="ocr-section collapsed" id="playerOCRSection">
+                    <div class="ocr-title" onclick="toggleOCRSection('player')">Screenshot Import (OCR)</div>
+                    <div class="ocr-content">
+                        <div class="ocr-mode-select">
+                            <label><input type="radio" name="playerOCRMode" value="myStats" checked> My Stats Only (left column)</label>
+                            <label><input type="radio" name="playerOCRMode" value="fullMatchup"> Full Matchup (both columns)</label>
+                        </div>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
+                            Upload 6 screenshots: 1 Profile card + 5 Compare screen scrolls. 
+                            <a href="#" onclick="showOCRInstructions(); return false;">View instructions</a>
+                        </p>
+                        <div class="upload-zones" id="playerUploadZones">
+                            <div class="upload-zone" onclick="document.getElementById('playerOCR0').click()">
+                                <input type="file" id="playerOCR0" accept="image/*" onchange="handleOCRUpload('player', 0, this)">
+                                <div class="icon">👤</div>
+                                <div class="label">Profile Card</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('playerOCR1').click()">
+                                <input type="file" id="playerOCR1" accept="image/*" onchange="handleOCRUpload('player', 1, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 1/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('playerOCR2').click()">
+                                <input type="file" id="playerOCR2" accept="image/*" onchange="handleOCRUpload('player', 2, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 2/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('playerOCR3').click()">
+                                <input type="file" id="playerOCR3" accept="image/*" onchange="handleOCRUpload('player', 3, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 3/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('playerOCR4').click()">
+                                <input type="file" id="playerOCR4" accept="image/*" onchange="handleOCRUpload('player', 4, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 4/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('playerOCR5').click()">
+                                <input type="file" id="playerOCR5" accept="image/*" onchange="handleOCRUpload('player', 5, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 5/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                        </div>
+                        <div class="ocr-progress" id="playerOCRProgress">
+                            <div class="ocr-progress-bar" id="playerOCRProgressBar" style="width: 0%">0%</div>
+                        </div>
+                        <div class="ocr-status" id="playerOCRStatus"></div>
+                        <div class="ocr-btn-row">
+                            <button class="btn btn-small btn-secondary" onclick="processOCR('player')">🔍 Process Screenshots</button>
+                            <button class="btn btn-small btn-outline" onclick="clearOCR('player')">🗑️ Clear All</button>
+                        </div>
+                        <div class="ocr-results" id="playerOCRResults">
+                            <h4>Extracted Stats:</h4>
+                            <div id="playerOCRStatsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enemy Tab -->
+            <div id="tab-enemy" class="tab-content">
+                <div class="section-title">Enemy Configuration</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="enemyClass">Class</label>
+                        <select id="enemyClass">
+                            <option value="sage">Martial Sage</option>
+                            <option value="custom">Custom (Manual Stats)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="enemyLevel">Level</label>
+                        <input type="number" id="enemyLevel" value="180" min="1" max="220">
+                    </div>
+                </div>
+
+                <div class="section-title">Core Stats</div>
+                <div class="input-grid input-grid-4">
+                    <div class="input-group">
+                        <label for="enemyATK">ATK (Millions)</label>
+                        <input type="number" id="enemyATK" value="5000" step="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="enemyHP">HP (Billions)</label>
+                        <input type="number" id="enemyHP" value="1500" step="10">
+                    </div>
+                    <div class="input-group">
+                        <label for="enemyDEF">DEF (Millions)</label>
+                        <input type="number" id="enemyDEF" value="2000" step="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="enemyATKSPD">ATK SPD</label>
+                        <input type="number" id="enemyATKSPD" value="3.21" step="0.01">
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible" onclick="toggleCollapse('enemyMultipliers')">Multipliers</div>
+                <div id="enemyMultipliers" class="collapse-content">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="enemyBasicATKMult">Basic ATK Mult %</label>
+                            <input type="number" id="enemyBasicATKMult" value="5000" step="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyComboMult">Combo Mult %</label>
+                            <input type="number" id="enemyComboMult" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCounterMult">Counter Mult %</label>
+                            <input type="number" id="enemyCounterMult" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCritDMG">Crit DMG %</label>
+                            <input type="number" id="enemyCritDMG" value="200" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemySkillDMG">Skill DMG %</label>
+                            <input type="number" id="enemySkillDMG" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemySkillCritDMG">Skill Crit DMG %</label>
+                            <input type="number" id="enemySkillCritDMG" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyPalDMG">Pal DMG %</label>
+                            <input type="number" id="enemyPalDMG" value="100" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyBossDMG">Boss DMG %</label>
+                            <input type="number" id="enemyBossDMG" value="0" step="10">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible" onclick="toggleCollapse('enemyProcRates')">Proc Rates</div>
+                <div id="enemyProcRates" class="collapse-content">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="enemyCombo">Combo %</label>
+                            <input type="number" id="enemyCombo" value="50" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCounter">Counter %</label>
+                            <input type="number" id="enemyCounter" value="50" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCritRate">Crit Rate %</label>
+                            <input type="number" id="enemyCritRate" value="50" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemySkillCrit">Skill Crit %</label>
+                            <input type="number" id="enemySkillCrit" value="50" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyStun">Stun %</label>
+                            <input type="number" id="enemyStun" value="0" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyLaunch">Launch %</label>
+                            <input type="number" id="enemyLaunch" value="0" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyEvasion">Evasion %</label>
+                            <input type="number" id="enemyEvasion" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyHealingRate">Healing Rate %</label>
+                            <input type="number" id="enemyHealingRate" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyHealingAmount">Healing Amount % HP</label>
+                            <input type="number" id="enemyHealingAmount" value="0" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('enemyResistances')">Resistances</div>
+                <div id="enemyResistances" class="collapse-content collapsed">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="enemyDMGRES">DMG RES %</label>
+                            <input type="number" id="enemyDMGRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyBasicATKRES">Basic ATK RES %</label>
+                            <input type="number" id="enemyBasicATKRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyComboRES">Combo DMG RES %</label>
+                            <input type="number" id="enemyComboRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCounterRES">Counter DMG RES %</label>
+                            <input type="number" id="enemyCounterRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemySkillRES">Skill DMG RES %</label>
+                            <input type="number" id="enemySkillRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyPalRES">Pal DMG RES %</label>
+                            <input type="number" id="enemyPalRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyBossRES">Boss DMG RES %</label>
+                            <input type="number" id="enemyBossRES" value="0" step="1" max="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCritRES">Crit RES %</label>
+                            <input type="number" id="enemyCritRES" value="50" step="1" min="50">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('enemyIgnore')">Ignore Stats</div>
+                <div id="enemyIgnore" class="collapse-content collapsed">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="enemyIgnoreEvasion">Ignore Evasion %</label>
+                            <input type="number" id="enemyIgnoreEvasion" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyIgnoreCombo">Ignore Combo %</label>
+                            <input type="number" id="enemyIgnoreCombo" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyIgnoreCounter">Ignore Counter %</label>
+                            <input type="number" id="enemyIgnoreCounter" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyIgnoreCrit">Ignore Crit %</label>
+                            <input type="number" id="enemyIgnoreCrit" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyIgnoreStun">Ignore Stun %</label>
+                            <input type="number" id="enemyIgnoreStun" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyIgnoreLaunch">Ignore Launch %</label>
+                            <input type="number" id="enemyIgnoreLaunch" value="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyIgnoreRegen">Ignore Regen %</label>
+                            <input type="number" id="enemyIgnoreRegen" value="0" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('enemySustain')">Sustain & CDR</div>
+                <div id="enemySustain" class="collapse-content collapsed">
+                    <div class="input-grid input-grid-4">
+                        <div class="input-group">
+                            <label for="enemyRegen">Regeneration %/sec</label>
+                            <input type="number" id="enemyRegen" value="0" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyControlRES">Control Duration RES %</label>
+                            <input type="number" id="enemyControlRES" value="0" step="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="enemyCDR">Cooldown Reduction %</label>
+                            <input type="number" id="enemyCDR" value="0" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enemy Import/Export -->
+                <div class="import-export-row">
+                    <button class="btn btn-small btn-success" onclick="exportConfig('enemy')">📥 Export Enemy</button>
+                    <input type="file" id="importEnemyFile" accept=".json" onchange="importConfig('enemy')">
+                    <button class="btn btn-small btn-outline" onclick="document.getElementById('importEnemyFile').click()">📤 Import Enemy</button>
+                    <button class="btn btn-small btn-warning" onclick="resetFields('enemy')">🔄 Reset Enemy</button>
+                </div>
+
+                <!-- OCR Screenshot Import -->
+                <div class="ocr-section collapsed" id="enemyOCRSection">
+                    <div class="ocr-title" onclick="toggleOCRSection('enemy')">Screenshot Import (OCR)</div>
+                    <div class="ocr-content">
+                        <div class="ocr-mode-select">
+                            <label><input type="radio" name="enemyOCRMode" value="enemyStats" checked> Enemy Stats Only (right column)</label>
+                            <label><input type="radio" name="enemyOCRMode" value="fullMatchup"> Full Matchup (both columns)</label>
+                        </div>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
+                            Upload 6 screenshots: 1 Profile card + 5 Compare screen scrolls. 
+                            <a href="#" onclick="showOCRInstructions(); return false;">View instructions</a>
+                        </p>
+                        <div class="upload-zones" id="enemyUploadZones">
+                            <div class="upload-zone" onclick="document.getElementById('enemyOCR0').click()">
+                                <input type="file" id="enemyOCR0" accept="image/*" onchange="handleOCRUpload('enemy', 0, this)">
+                                <div class="icon">👤</div>
+                                <div class="label">Profile Card</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('enemyOCR1').click()">
+                                <input type="file" id="enemyOCR1" accept="image/*" onchange="handleOCRUpload('enemy', 1, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 1/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('enemyOCR2').click()">
+                                <input type="file" id="enemyOCR2" accept="image/*" onchange="handleOCRUpload('enemy', 2, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 2/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('enemyOCR3').click()">
+                                <input type="file" id="enemyOCR3" accept="image/*" onchange="handleOCRUpload('enemy', 3, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 3/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('enemyOCR4').click()">
+                                <input type="file" id="enemyOCR4" accept="image/*" onchange="handleOCRUpload('enemy', 4, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 4/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                            <div class="upload-zone" onclick="document.getElementById('enemyOCR5').click()">
+                                <input type="file" id="enemyOCR5" accept="image/*" onchange="handleOCRUpload('enemy', 5, this)">
+                                <div class="icon">📊</div>
+                                <div class="label">Compare 5/5</div>
+                                <div class="status">Click to upload</div>
+                            </div>
+                        </div>
+                        <div class="ocr-progress" id="enemyOCRProgress">
+                            <div class="ocr-progress-bar" id="enemyOCRProgressBar" style="width: 0%">0%</div>
+                        </div>
+                        <div class="ocr-status" id="enemyOCRStatus"></div>
+                        <div class="ocr-btn-row">
+                            <button class="btn btn-small btn-secondary" onclick="processOCR('enemy')">🔍 Process Screenshots</button>
+                            <button class="btn btn-small btn-outline" onclick="clearOCR('enemy')">🗑️ Clear All</button>
+                        </div>
+                        <div class="ocr-results" id="enemyOCRResults">
+                            <h4>Extracted Stats:</h4>
+                            <div id="enemyOCRStatsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipment Tab -->
+            <div id="tab-equipment" class="tab-content">
+                <div class="two-column">
+                    <div>
+                        <div class="section-title">Player Equipment</div>
+                        
+                        <div class="subsection-title">Pals</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalWolf">
+                            <label for="playerPalWolf">Moonlit Lonewolf</label>
+                            <span class="pal-effect">(Enemy Regen -10%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalPup">
+                            <label for="playerPalPup">Electric Pup</label>
+                            <span class="pal-effect">(Counter DMG +60%, heal 1% lost HP on counter)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalHydro">
+                            <label for="playerPalHydro">Warlord Hydrosprite</label>
+                            <span class="pal-effect">(Skill CDR +25%)</span>
+                        </div>
+
+                        <div class="info-box">
+                            <strong>Note:</strong> Equipment dropdowns (Avian, Mount, Artifact, Back) coming in future update. Pals are functional now.
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="section-title">Enemy Equipment</div>
+                        
+                        <div class="subsection-title">Pals</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalWolf">
+                            <label for="enemyPalWolf">Moonlit Lonewolf</label>
+                            <span class="pal-effect">(Enemy Regen -10%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalPup">
+                            <label for="enemyPalPup">Electric Pup</label>
+                            <span class="pal-effect">(Counter DMG +60%, heal 1% lost HP on counter)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalHydro">
+                            <label for="enemyPalHydro">Warlord Hydrosprite</label>
+                            <span class="pal-effect">(Skill CDR +25%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Tab -->
+            <div id="tab-skills" class="tab-content">
+                <div class="info-box info">
+                    <strong>Note:</strong> Active skills coming in future update. Class skill (Blades Reunion for Martial Sage) is currently active and functional.
+                </div>
+            </div>
+
+            <!-- Battle Controls -->
+            <div class="button-row">
+                <button class="btn btn-primary" onclick="runSimulation()">⚔️ Run 120s Battle Simulation</button>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="results-section hidden">
+                <h3>⚔️ Battle Results</h3>
+
+                <div class="battle-display">
+                    <div class="fighter-card">
+                        <h4>👤 Player</h4>
+                        <div class="hp-bar">
+                            <div class="hp-fill" id="playerHPBar" style="width: 100%;">100%</div>
+                        </div>
+                        <div id="playerHPText">HP: 1500B / 1500B</div>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="fighter-card">
+                        <h4>👹 Enemy</h4>
+                        <div class="hp-bar">
+                            <div class="hp-fill enemy" id="enemyHPBar" style="width: 100%;">100%</div>
+                        </div>
+                        <div id="enemyHPText">HP: 1500B / 1500B</div>
+                    </div>
+                </div>
+
+                <!-- HP Graph -->
+                <div class="graph-container">
+                    <h4>📊 HP Over Time</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="hpChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="stats-summary">
+                    <div class="stat-card">
+                        <div class="value" id="resultWinner">-</div>
+                        <div class="label">Winner</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultDuration">-</div>
+                        <div class="label">Duration</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultPlayerDMG">-</div>
+                        <div class="label">Player Total DMG</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultEnemyDMG">-</div>
+                        <div class="label">Enemy Total DMG</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultPlayerDPS">-</div>
+                        <div class="label">Player DPS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultEnemyDPS">-</div>
+                        <div class="label">Enemy DPS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultPlayerHeals">-</div>
+                        <div class="label">Player Heal Procs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="resultEnemyHeals">-</div>
+                        <div class="label">Enemy Heal Procs</div>
+                    </div>
+                </div>
+
+                <div class="subsection-title" style="color: white; margin-top: 20px;">Battle Log (Last 100 Events)</div>
+                <div class="battle-log" id="battleLog"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DATA
+        // ============================================
+
+        const PVP_FACTORS = {
+            1: 1.00, 2: 1.00, 3: 1.00, 4: 1.00, 5: 1.00, 6: 1.00, 7: 1.00, 8: 1.10, 9: 1.15, 10: 1.40,
+            11: 1.60, 12: 1.70, 13: 2.00, 14: 2.10, 15: 2.40, 16: 2.50, 17: 2.55, 18: 2.95, 19: 3.05, 20: 3.45,
+            21: 3.85, 22: 4.00, 23: 4.15, 24: 4.25, 25: 4.75, 26: 4.90, 27: 5.05, 28: 5.15, 29: 5.30, 30: 5.80,
+            31: 6.45, 32: 6.60, 33: 6.75, 34: 6.95, 35: 7.65, 36: 7.80, 37: 7.95, 38: 8.15, 39: 8.35, 40: 8.50,
+            41: 9.35, 42: 9.50, 43: 9.70, 44: 9.90, 45: 10.05, 46: 10.25, 47: 10.45, 48: 10.65, 49: 10.80, 50: 11.00,
+            51: 11.95, 52: 12.15, 53: 12.35, 54: 12.55, 55: 12.75, 56: 12.95, 57: 13.15, 58: 13.35, 59: 13.55, 60: 13.75,
+            61: 14.90, 62: 15.10, 63: 15.35, 64: 15.55, 65: 16.10, 66: 16.70, 67: 17.30, 68: 17.90, 69: 18.60, 70: 19.20,
+            71: 19.90, 72: 20.70, 73: 21.40, 74: 22.20, 75: 23.00, 76: 23.90, 77: 24.80, 78: 25.70, 79: 26.60, 80: 27.60,
+            81: 28.60, 82: 29.70, 83: 30.80, 84: 31.90, 85: 33.10, 86: 34.30, 87: 35.60, 88: 36.90, 89: 38.20, 90: 39.60,
+            91: 41.10, 92: 42.60, 93: 44.20, 94: 45.80, 95: 47.50, 96: 49.20, 97: 51.00, 98: 52.90, 99: 54.90, 100: 56.90,
+            101: 59.00, 102: 61.20, 103: 63.40, 104: 65.80, 105: 68.20, 106: 70.70, 107: 73.30, 108: 76.00, 109: 78.80, 110: 81.70,
+            111: 84.70, 112: 87.80, 113: 91.10, 114: 94.40, 115: 97.90, 116: 101.50, 117: 105.20, 118: 109.10, 119: 113.10, 120: 117.30,
+            121: 121.60, 122: 126.10, 123: 130.80, 124: 135.60, 125: 140.60, 126: 145.80, 127: 151.00, 128: 156.20, 129: 161.40, 130: 166.60,
+            131: 172.00, 132: 177.40, 133: 182.80, 134: 188.20, 135: 193.60, 136: 199.20, 137: 204.80, 138: 210.40, 139: 216.00, 140: 221.60,
+            141: 227.40, 142: 233.20, 143: 239.00, 144: 244.80, 145: 250.60, 146: 256.60, 147: 262.60, 148: 268.60, 149: 274.60, 150: 280.60,
+            151: 286.70, 152: 292.80, 153: 298.90, 154: 305.00, 155: 311.20, 156: 317.40, 157: 323.60, 158: 329.80, 159: 336.00, 160: 342.30,
+            161: 348.60, 162: 354.90, 163: 361.20, 164: 367.50, 165: 373.90, 166: 380.30, 167: 386.70, 168: 393.10, 169: 399.50, 170: 406.00,
+            171: 412.50, 172: 419.00, 173: 425.50, 174: 432.00, 175: 438.60, 176: 445.20, 177: 451.80, 178: 458.40, 179: 465.00, 180: 471.70,
+            181: 478.40, 182: 485.10, 183: 491.80, 184: 498.50, 185: 505.30, 186: 512.10, 187: 518.90, 188: 525.70, 189: 532.50, 190: 539.40,
+            191: 546.30, 192: 553.20, 193: 560.10, 194: 567.00, 195: 574.00, 196: 581.00, 197: 588.00, 198: 595.00, 199: 602.00, 200: 609.00,
+            201: 616.10, 202: 623.20, 203: 630.30, 204: 637.40, 205: 644.50, 206: 651.70, 207: 658.90, 208: 666.10, 209: 673.30, 210: 680.50,
+            211: 687.80, 212: 695.10, 213: 702.40, 214: 709.70, 215: 717.00, 216: 724.40, 217: 731.80, 218: 739.20, 219: 746.60, 220: 754.00
+        };
+
+        const PVP_HEALING_REDUCTION = 0.30;
+        const PVP_SHIELD_REDUCTION = 0.40;
+
+        let hpChart = null;
+
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleCollapse(id) {
+            const el = document.getElementById(id);
+            const title = el.previousElementSibling;
+            el.classList.toggle('collapsed');
+            title.classList.toggle('collapsed');
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function formatNumber(num) {
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(0);
+        }
+
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        function roll(percent) {
+            return Math.random() * 100 < percent;
+        }
+
+        // ============================================
+        // GATHER STATS
+        // ============================================
+
+        function gatherStats(prefix) {
+            const stats = {
+                class: document.getElementById(prefix + 'Class').value,
+                level: parseInt(document.getElementById(prefix + 'Level').value),
+                atk: parseFloat(document.getElementById(prefix + 'ATK').value) * 1e6,
+                hp: parseFloat(document.getElementById(prefix + 'HP').value) * 1e9,
+                maxHP: parseFloat(document.getElementById(prefix + 'HP').value) * 1e9,
+                def: parseFloat(document.getElementById(prefix + 'DEF').value) * 1e6,
+                atkSpd: parseFloat(document.getElementById(prefix + 'ATKSPD').value),
+                
+                basicATKMult: parseFloat(document.getElementById(prefix + 'BasicATKMult').value),
+                comboMult: parseFloat(document.getElementById(prefix + 'ComboMult').value),
+                counterMult: parseFloat(document.getElementById(prefix + 'CounterMult').value),
+                critDMG: parseFloat(document.getElementById(prefix + 'CritDMG').value),
+                skillDMG: parseFloat(document.getElementById(prefix + 'SkillDMG').value),
+                skillCritDMG: parseFloat(document.getElementById(prefix + 'SkillCritDMG').value),
+                palDMG: parseFloat(document.getElementById(prefix + 'PalDMG').value),
+                bossDMG: parseFloat(document.getElementById(prefix + 'BossDMG').value),
+
+                combo: clamp(parseFloat(document.getElementById(prefix + 'Combo').value), 0, 100),
+                counter: clamp(parseFloat(document.getElementById(prefix + 'Counter').value), 0, 100),
+                critRate: clamp(parseFloat(document.getElementById(prefix + 'CritRate').value), 0, 100),
+                skillCrit: parseFloat(document.getElementById(prefix + 'SkillCrit').value),
+                stun: clamp(parseFloat(document.getElementById(prefix + 'Stun').value), 0, 100),
+                launch: clamp(parseFloat(document.getElementById(prefix + 'Launch').value), 0, 100),
+                evasion: parseFloat(document.getElementById(prefix + 'Evasion').value),
+                healingRate: parseFloat(document.getElementById(prefix + 'HealingRate').value),
+                healingAmount: parseFloat(document.getElementById(prefix + 'HealingAmount').value),
+
+                dmgRES: clamp(parseFloat(document.getElementById(prefix + 'DMGRES').value), -100, 80),
+                basicATKRES: clamp(parseFloat(document.getElementById(prefix + 'BasicATKRES').value), -100, 80),
+                comboRES: clamp(parseFloat(document.getElementById(prefix + 'ComboRES').value), -100, 80),
+                counterRES: clamp(parseFloat(document.getElementById(prefix + 'CounterRES').value), -100, 80),
+                skillRES: clamp(parseFloat(document.getElementById(prefix + 'SkillRES').value), -100, 80),
+                palRES: clamp(parseFloat(document.getElementById(prefix + 'PalRES').value), -100, 80),
+                bossRES: clamp(parseFloat(document.getElementById(prefix + 'BossRES').value), -100, 80),
+                critRES: Math.max(50, parseFloat(document.getElementById(prefix + 'CritRES').value)),
+
+                ignoreEvasion: parseFloat(document.getElementById(prefix + 'IgnoreEvasion').value),
+                ignoreCombo: parseFloat(document.getElementById(prefix + 'IgnoreCombo').value),
+                ignoreCounter: parseFloat(document.getElementById(prefix + 'IgnoreCounter').value),
+                ignoreCrit: parseFloat(document.getElementById(prefix + 'IgnoreCrit').value),
+                ignoreStun: parseFloat(document.getElementById(prefix + 'IgnoreStun').value),
+                ignoreLaunch: parseFloat(document.getElementById(prefix + 'IgnoreLaunch').value),
+                ignoreRegen: parseFloat(document.getElementById(prefix + 'IgnoreRegen').value),
+
+                regen: parseFloat(document.getElementById(prefix + 'Regen').value),
+                controlRES: clamp(parseFloat(document.getElementById(prefix + 'ControlRES').value), 0, 100),
+                cdr: parseFloat(document.getElementById(prefix + 'CDR').value),
+
+                hasMoonlitLonewolf: document.getElementById(prefix + 'PalWolf').checked,
+                hasElectricPup: document.getElementById(prefix + 'PalPup').checked,
+                hasHydrosprite: document.getElementById(prefix + 'PalHydro').checked,
+
+                totalDamageDealt: 0,
+                healProcs: 0,
+                shield: 0
+            };
+
+            if (stats.hasElectricPup) stats.counterMult += 60;
+            if (stats.hasHydrosprite) stats.cdr += 25;
+
+            return stats;
+        }
+
+        // ============================================
+        // DAMAGE CALCULATIONS
+        // ============================================
+
+        function calcBasicATKDamage(attacker, defender, pvpFactor) {
+            const atkMinusDef = Math.max(1, attacker.atk - defender.def);
+            let dmg = atkMinusDef * (attacker.basicATKMult / 100);
+            dmg *= (1 - defender.basicATKRES / 100);
+            dmg *= (1 - defender.dmgRES / 100);
+            return dmg / pvpFactor;
+        }
+
+        function calcComboDamage(attacker, defender, pvpFactor) {
+            const atkMinusDef = Math.max(1, attacker.atk - defender.def);
+            let dmg = atkMinusDef * (attacker.comboMult / 100);
+            dmg *= (1 - defender.comboRES / 100);
+            dmg *= (1 - defender.dmgRES / 100);
+            return dmg / pvpFactor;
+        }
+
+        function calcCounterDamage(attacker, defender, pvpFactor) {
+            const atkMinusDef = Math.max(1, attacker.atk - defender.def);
+            let dmg = atkMinusDef * (attacker.counterMult / 100);
+            dmg *= (1 - defender.counterRES / 100);
+            dmg *= (1 - defender.dmgRES / 100);
+            return dmg / pvpFactor;
+        }
+
+        function calcSkillDamage(attacker, defender, skillDmgPercent, pvpFactor) {
+            const atkMinusDef = Math.max(1, attacker.atk - defender.def);
+            let dmg = atkMinusDef * (skillDmgPercent / 100) * (attacker.skillDMG / 100);
+            dmg *= (1 - defender.skillRES / 100);
+            dmg *= (1 - defender.dmgRES / 100);
+            return dmg / pvpFactor;
+        }
+
+        function applyCrit(baseDmg, attacker, defender) {
+            const critMult = Math.max(1.5, attacker.critDMG / defender.critRES);
+            return baseDmg * critMult;
+        }
+
+        // ============================================
+        // BATTLE SIMULATION
+        // ============================================
+
+        function runSimulation() {
+            const player = gatherStats('player');
+            const enemy = gatherStats('enemy');
+
+            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen - 10);
+            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen - 10);
+
+            const avgLevel = Math.floor((player.level + enemy.level) / 2);
+            const pvpFactor = PVP_FACTORS[avgLevel] || 471.70;
+
+            const DURATION = 120;
+            const TIME_STEP = 0.01;
+            const SAMPLE_RATE = 0.25;
+
+            let time = 0;
+            let playerNextAttack = 0;
+            let enemyNextAttack = 0;
+
+            let playerClassSkillCD = 0;
+            let enemyClassSkillCD = 0;
+            const playerClassSkillBase = 15 * (1 - player.cdr / 100);
+            const enemyClassSkillBase = 15 * (1 - enemy.cdr / 100);
+
+            let playerNextRegen = 5;
+            let playerNextShield = 10;
+            let enemyNextRegen = 5;
+            let enemyNextShield = 10;
+
+            let playerBladesReunionActive = 0;
+            let enemyBladesReunionActive = 0;
+
+            const battleLog = [];
+            let winner = null;
+
+            const hpHistory = { times: [], playerHP: [], enemyHP: [] };
+            let lastSampleTime = -1;
+
+            function log(msg, type = '') {
+                battleLog.push({ time: time.toFixed(2), msg, type });
+            }
+
+            function sampleHP() {
+                if (time - lastSampleTime >= SAMPLE_RATE) {
+                    hpHistory.times.push(time.toFixed(1));
+                    hpHistory.playerHP.push((player.hp / player.maxHP * 100).toFixed(1));
+                    hpHistory.enemyHP.push((enemy.hp / enemy.maxHP * 100).toFixed(1));
+                    lastSampleTime = time;
+                }
+            }
+
+            function dealDamage(target, amount) {
+                if (target.shield > 0) {
+                    if (amount <= target.shield) {
+                        target.shield -= amount;
+                        return 0;
+                    } else {
+                        amount -= target.shield;
+                        target.shield = 0;
+                    }
+                }
+                target.hp = Math.max(0, target.hp - amount);
+                return amount;
+            }
+
+            function heal(target, amount) {
+                amount *= PVP_HEALING_REDUCTION;
+                const healed = Math.min(amount, target.maxHP - target.hp);
+                target.hp += healed;
+                target.healProcs++;
+                return healed;
+            }
+
+            sampleHP();
+
+            while (time < DURATION && player.hp > 0 && enemy.hp > 0) {
+                // Player attacks
+                if (time >= playerNextAttack) {
+                    const interval = 1 / player.atkSpd;
+                    playerNextAttack = time + interval;
+
+                    const effectiveEvasion = Math.max(0, enemy.evasion - player.ignoreEvasion);
+                    const evasionChance = Math.pow(effectiveEvasion / 100, 0.9) * 100;
+                    
+                    if (!roll(evasionChance)) {
+                        let dmg = calcBasicATKDamage(player, enemy, pvpFactor);
+                        const isCrit = roll(player.critRate - enemy.ignoreCrit);
+                        if (isCrit) dmg = applyCrit(dmg, player, enemy);
+                        
+                        const dealt = dealDamage(enemy, dmg);
+                        player.totalDamageDealt += dealt;
+                        log(`Player Basic ATK: ${formatNumber(dealt)}${isCrit ? ' CRIT!' : ''}`, isCrit ? 'crit' : 'damage');
+
+                        const effectiveCombo = Math.max(0, player.combo - enemy.ignoreCombo);
+                        if (roll(effectiveCombo)) {
+                            let comboDmg = calcComboDamage(player, enemy, pvpFactor);
+                            const comboCrit = roll(player.critRate - enemy.ignoreCrit);
+                            if (comboCrit) comboDmg = applyCrit(comboDmg, player, enemy);
+                            
+                            const comboDealt = dealDamage(enemy, comboDmg);
+                            player.totalDamageDealt += comboDealt;
+                            log(`  → Combo: ${formatNumber(comboDealt)}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                        }
+                    }
+
+                    const effectiveCounter = Math.max(0, enemy.counter - player.ignoreCounter);
+                    if (roll(effectiveCounter)) {
+                        let counterDmg = calcCounterDamage(enemy, player, pvpFactor);
+                        const counterCrit = roll(enemy.critRate - player.ignoreCrit);
+                        if (counterCrit) counterDmg = applyCrit(counterDmg, enemy, player);
+
+                        if (enemyBladesReunionActive > time) counterDmg += (enemy.hp * 0.01) / pvpFactor;
+
+                        const counterDealt = dealDamage(player, counterDmg);
+                        enemy.totalDamageDealt += counterDealt;
+                        log(`  ← Enemy Counter: ${formatNumber(counterDealt)}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+
+                        if (enemy.hasElectricPup) {
+                            const lostHP = enemy.maxHP - enemy.hp;
+                            const healed = heal(enemy, lostHP * 0.01);
+                            if (healed > 0) log(`  ← Enemy Pup heal: ${formatNumber(healed)}`, 'heal');
+                        }
+                    }
+                }
+
+                // Enemy attacks
+                if (time >= enemyNextAttack) {
+                    const interval = 1 / enemy.atkSpd;
+                    enemyNextAttack = time + interval;
+
+                    const effectiveEvasion = Math.max(0, player.evasion - enemy.ignoreEvasion);
+                    const evasionChance = Math.pow(effectiveEvasion / 100, 0.9) * 100;
+
+                    if (!roll(evasionChance)) {
+                        let dmg = calcBasicATKDamage(enemy, player, pvpFactor);
+                        const isCrit = roll(enemy.critRate - player.ignoreCrit);
+                        if (isCrit) dmg = applyCrit(dmg, enemy, player);
+                        
+                        const dealt = dealDamage(player, dmg);
+                        enemy.totalDamageDealt += dealt;
+                        log(`Enemy Basic ATK: ${formatNumber(dealt)}${isCrit ? ' CRIT!' : ''}`, isCrit ? 'crit' : 'damage');
+
+                        const effectiveCombo = Math.max(0, enemy.combo - player.ignoreCombo);
+                        if (roll(effectiveCombo)) {
+                            let comboDmg = calcComboDamage(enemy, player, pvpFactor);
+                            const comboCrit = roll(enemy.critRate - player.ignoreCrit);
+                            if (comboCrit) comboDmg = applyCrit(comboDmg, enemy, player);
+                            
+                            const comboDealt = dealDamage(player, comboDmg);
+                            enemy.totalDamageDealt += comboDealt;
+                            log(`  → Combo: ${formatNumber(comboDealt)}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                        }
+                    }
+
+                    const effectiveCounter = Math.max(0, player.counter - enemy.ignoreCounter);
+                    if (roll(effectiveCounter)) {
+                        let counterDmg = calcCounterDamage(player, enemy, pvpFactor);
+                        const counterCrit = roll(player.critRate - enemy.ignoreCrit);
+                        if (counterCrit) counterDmg = applyCrit(counterDmg, player, enemy);
+
+                        if (playerBladesReunionActive > time) counterDmg += (player.hp * 0.01) / pvpFactor;
+
+                        const counterDealt = dealDamage(enemy, counterDmg);
+                        player.totalDamageDealt += counterDealt;
+                        log(`  ← Player Counter: ${formatNumber(counterDealt)}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+
+                        if (player.hasElectricPup) {
+                            const lostHP = player.maxHP - player.hp;
+                            const healed = heal(player, lostHP * 0.01);
+                            if (healed > 0) log(`  ← Player Pup heal: ${formatNumber(healed)}`, 'heal');
+                        }
+                    }
+                }
+
+                // Class skills
+                if (player.class === 'sage' && time >= playerClassSkillCD) {
+                    playerClassSkillCD = time + playerClassSkillBase;
+                    playerBladesReunionActive = time + 8;
+                    const skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
+                    const dealt = dealDamage(enemy, skillDmg);
+                    player.totalDamageDealt += dealt;
+                    log(`⚔️ Player BLADES REUNION: ${formatNumber(dealt)}`, 'skill');
+                }
+
+                if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
+                    enemyClassSkillCD = time + enemyClassSkillBase;
+                    enemyBladesReunionActive = time + 8;
+                    const skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
+                    const dealt = dealDamage(player, skillDmg);
+                    enemy.totalDamageDealt += dealt;
+                    log(`⚔️ Enemy BLADES REUNION: ${formatNumber(dealt)}`, 'skill');
+                }
+
+                // Sage passives
+                if (player.class === 'sage' && time >= playerNextRegen) {
+                    playerNextRegen = time + 5;
+                    const healed = heal(player, player.maxHP * 0.08);
+                    log(`💚 Player Sage Regen: ${formatNumber(healed)}`, 'heal');
+                }
+
+                if (enemy.class === 'sage' && time >= enemyNextRegen) {
+                    enemyNextRegen = time + 5;
+                    const healed = heal(enemy, enemy.maxHP * 0.08);
+                    log(`💚 Enemy Sage Regen: ${formatNumber(healed)}`, 'heal');
+                }
+
+                if (player.class === 'sage' && time >= playerNextShield) {
+                    playerNextShield = time + 10;
+                    player.shield = player.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
+                    log(`🛡️ Player Sage Shield: ${formatNumber(player.shield)}`, 'skill');
+                }
+
+                if (enemy.class === 'sage' && time >= enemyNextShield) {
+                    enemyNextShield = time + 10;
+                    enemy.shield = enemy.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
+                    log(`🛡️ Enemy Sage Shield: ${formatNumber(enemy.shield)}`, 'skill');
+                }
+
+                sampleHP();
+                time += TIME_STEP;
+            }
+
+            // Final sample
+            hpHistory.times.push(time.toFixed(1));
+            hpHistory.playerHP.push((player.hp / player.maxHP * 100).toFixed(1));
+            hpHistory.enemyHP.push((enemy.hp / enemy.maxHP * 100).toFixed(1));
+
+            if (player.hp <= 0 && enemy.hp <= 0) winner = 'Draw';
+            else if (player.hp <= 0) winner = 'Enemy';
+            else if (enemy.hp <= 0) winner = 'Player';
+            else {
+                const playerPct = player.hp / player.maxHP;
+                const enemyPct = enemy.hp / enemy.maxHP;
+                winner = playerPct > enemyPct ? 'Player (HP%)' : enemyPct > playerPct ? 'Enemy (HP%)' : 'Draw';
+            }
+
+            displayResults(player, enemy, time, winner, battleLog, hpHistory);
+        }
+
+        function displayResults(player, enemy, duration, winner, battleLog, hpHistory) {
+            document.getElementById('results-section').classList.remove('hidden');
+
+            const playerHPPercent = Math.max(0, (player.hp / player.maxHP) * 100);
+            const enemyHPPercent = Math.max(0, (enemy.hp / enemy.maxHP) * 100);
+
+            document.getElementById('playerHPBar').style.width = playerHPPercent + '%';
+            document.getElementById('playerHPBar').textContent = playerHPPercent.toFixed(1) + '%';
+            document.getElementById('playerHPText').textContent = `HP: ${formatNumber(player.hp)} / ${formatNumber(player.maxHP)}`;
+
+            document.getElementById('enemyHPBar').style.width = enemyHPPercent + '%';
+            document.getElementById('enemyHPBar').textContent = enemyHPPercent.toFixed(1) + '%';
+            document.getElementById('enemyHPText').textContent = `HP: ${formatNumber(enemy.hp)} / ${formatNumber(enemy.maxHP)}`;
+
+            document.getElementById('resultWinner').textContent = winner;
+            document.getElementById('resultWinner').style.color = winner.includes('Player') ? '#51cf66' : winner.includes('Enemy') ? '#ff6b6b' : '#ffd43b';
+            document.getElementById('resultDuration').textContent = duration.toFixed(2) + 's';
+            document.getElementById('resultPlayerDMG').textContent = formatNumber(player.totalDamageDealt);
+            document.getElementById('resultEnemyDMG').textContent = formatNumber(enemy.totalDamageDealt);
+            document.getElementById('resultPlayerDPS').textContent = formatNumber(player.totalDamageDealt / duration) + '/s';
+            document.getElementById('resultEnemyDPS').textContent = formatNumber(enemy.totalDamageDealt / duration) + '/s';
+            document.getElementById('resultPlayerHeals').textContent = player.healProcs;
+            document.getElementById('resultEnemyHeals').textContent = enemy.healProcs;
+
+            const logEl = document.getElementById('battleLog');
+            const recentLog = battleLog.slice(-100);
+            logEl.innerHTML = recentLog.map(entry => 
+                `<span class="time">[${entry.time}s]</span> <span class="${entry.type}">${entry.msg}</span>`
+            ).join('<br>');
+            logEl.scrollTop = logEl.scrollHeight;
+
+            renderHPChart(hpHistory);
+        }
+
+        function renderHPChart(hpHistory) {
+            const ctx = document.getElementById('hpChart').getContext('2d');
+            
+            if (hpChart) hpChart.destroy();
+
+            hpChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hpHistory.times,
+                    datasets: [
+                        {
+                            label: 'Player HP %',
+                            data: hpHistory.playerHP,
+                            borderColor: '#51cf66',
+                            backgroundColor: 'rgba(81, 207, 102, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Enemy HP %',
+                            data: hpHistory.enemyHP,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { labels: { color: '#fff' } },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (seconds)', color: '#aaa' },
+                            ticks: { color: '#aaa', maxTicksLimit: 12 },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            min: 0, max: 100,
+                            title: { display: true, text: 'HP %', color: '#aaa' },
+                            ticks: { color: '#aaa' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // IMPORT/EXPORT (Per Player)
+        // ============================================
+
+        function exportConfig(who) {
+            const config = {
+                version: 'alpha-2.0',
+                type: who,
+                timestamp: new Date().toISOString(),
+                data: gatherConfigForExport(who)
+            };
+
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lom_${who}_config_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function gatherConfigForExport(prefix) {
+            const fields = [
+                'Class', 'Level', 'ATK', 'HP', 'DEF', 'ATKSPD',
+                'BasicATKMult', 'ComboMult', 'CounterMult', 'CritDMG', 'SkillDMG', 'SkillCritDMG', 'PalDMG', 'BossDMG',
+                'Combo', 'Counter', 'CritRate', 'SkillCrit', 'Stun', 'Launch', 'Evasion', 'HealingRate', 'HealingAmount',
+                'DMGRES', 'BasicATKRES', 'ComboRES', 'CounterRES', 'SkillRES', 'PalRES', 'BossRES', 'CritRES',
+                'IgnoreEvasion', 'IgnoreCombo', 'IgnoreCounter', 'IgnoreCrit', 'IgnoreStun', 'IgnoreLaunch', 'IgnoreRegen',
+                'Regen', 'ControlRES', 'CDR'
+            ];
+
+            const config = {};
+            fields.forEach(field => {
+                const el = document.getElementById(prefix + field);
+                if (el) config[field] = el.value;
+            });
+
+            config.PalWolf = document.getElementById(prefix + 'PalWolf').checked;
+            config.PalPup = document.getElementById(prefix + 'PalPup').checked;
+            config.PalHydro = document.getElementById(prefix + 'PalHydro').checked;
+
+            return config;
+        }
+
+        function importConfig(who) {
+            const fileInput = document.getElementById('import' + who.charAt(0).toUpperCase() + who.slice(1) + 'File');
+            if (!fileInput.files.length) return;
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    applyConfig(who, config.data);
+                    alert(`${who.charAt(0).toUpperCase() + who.slice(1)} configuration loaded!`);
+                } catch (err) {
+                    alert('Error loading configuration: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            fileInput.value = '';
+        }
+
+        function applyConfig(prefix, config) {
+            Object.keys(config).forEach(key => {
+                const el = document.getElementById(prefix + key);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = config[key];
+                    else el.value = config[key];
+                }
+            });
+        }
+
+        function resetFields(who) {
+            if (!confirm(`Reset all ${who} fields to defaults?`)) return;
+            
+            const defaults = {
+                Class: 'sage', Level: '180', ATK: '5000', HP: '1500', DEF: '2000', ATKSPD: '3.21',
+                BasicATKMult: '5000', ComboMult: '100', CounterMult: '100', CritDMG: '200',
+                SkillDMG: '100', SkillCritDMG: '100', PalDMG: '100', BossDMG: '0',
+                Combo: '50', Counter: '50', CritRate: '50', SkillCrit: '50',
+                Stun: '0', Launch: '0', Evasion: '0', HealingRate: '0', HealingAmount: '0',
+                DMGRES: '0', BasicATKRES: '0', ComboRES: '0', CounterRES: '0',
+                SkillRES: '0', PalRES: '0', BossRES: '0', CritRES: '50',
+                IgnoreEvasion: '0', IgnoreCombo: '0', IgnoreCounter: '0', IgnoreCrit: '0',
+                IgnoreStun: '0', IgnoreLaunch: '0', IgnoreRegen: '0',
+                Regen: '0', ControlRES: '0', CDR: '0'
+            };
+
+            Object.keys(defaults).forEach(key => {
+                const el = document.getElementById(who + key);
+                if (el) el.value = defaults[key];
+            });
+
+            document.getElementById(who + 'PalWolf').checked = false;
+            document.getElementById(who + 'PalPup').checked = false;
+            document.getElementById(who + 'PalHydro').checked = false;
+        }
+
+        // =====================================
+        // OCR Screenshot Import Functions
+        // =====================================
+        
+        const ocrData = {
+            player: { files: new Array(6).fill(null), results: {} },
+            enemy: { files: new Array(6).fill(null), results: {} }
+        };
+
+        // Stat label to form field mapping
+        const statMapping = {
+            // Core stats
+            'Final HP': { field: 'HP', convert: 'billions' },
+            'Final ATK': { field: 'ATK', convert: 'millions' },
+            'Final DEF': { field: 'DEF', convert: 'millions' },
+            'Final ATK SPD': { field: 'ATKSPD', convert: 'number' },
+            
+            // Crit stats
+            'Crit Rate': { field: 'CritRate', convert: 'percent' },
+            'Ignore Crit': { field: 'IgnoreCrit', convert: 'percent' },
+            'Crit DMG': { field: 'CritDMG', convert: 'percent' },
+            'Crit RES': { field: 'CritRES', convert: 'percent' },
+            
+            // Combo/Counter
+            'Combo': { field: 'Combo', convert: 'percent' },
+            'Ignore Combo': { field: 'IgnoreCombo', convert: 'percent' },
+            'Counterstrike': { field: 'Counter', convert: 'percent' },
+            'Ignore Counter': { field: 'IgnoreCounter', convert: 'percent' },
+            
+            // Multipliers
+            'Basic ATK Multiplier': { field: 'BasicATKMult', convert: 'percent' },
+            'Combo Multiplier': { field: 'ComboMult', convert: 'percent' },
+            'Counter Multiplier': { field: 'CounterMult', convert: 'percent' },
+            
+            // Resistances
+            'Basic ATK DMG RES': { field: 'BasicATKRES', convert: 'percent' },
+            'Combo DMG RES': { field: 'ComboRES', convert: 'percent' },
+            'Counter DMG RES': { field: 'CounterRES', convert: 'percent' },
+            'Skill DMG RES': { field: 'SkillRES', convert: 'percent' },
+            'Pal DMG RES': { field: 'PalRES', convert: 'percent' },
+            'Boss DMG RES': { field: 'BossRES', convert: 'percent' },
+            'DMG RES': { field: 'DMGRES', convert: 'percent' },
+            
+            // Skill stats
+            'Skill Crit': { field: 'SkillCrit', convert: 'percent' },
+            'Skill Crit DMG': { field: 'SkillCritDMG', convert: 'percent' },
+            'Skill DMG': { field: 'SkillDMG', convert: 'percent' },
+            
+            // Other combat stats
+            'Stun': { field: 'Stun', convert: 'percent' },
+            'Ignore Stun': { field: 'IgnoreStun', convert: 'percent' },
+            'Launch': { field: 'Launch', convert: 'percent' },
+            'Ignore Launch': { field: 'IgnoreLaunch', convert: 'percent' },
+            'Evasion': { field: 'Evasion', convert: 'percent' },
+            'Ignore Evasion': { field: 'IgnoreEvasion', convert: 'percent' },
+            'Regeneration': { field: 'Regen', convert: 'percent' },
+            'Ignore Regen': { field: 'IgnoreRegen', convert: 'percent' },
+            
+            // Boss/Pal
+            'Boss DMG': { field: 'BossDMG', convert: 'percent' },
+            'Pal DMG': { field: 'PalDMG', convert: 'percent' },
+            
+            // Healing
+            'Healing Rate': { field: 'HealingRate', convert: 'percent' },
+            'Healing Amount': { field: 'HealingAmount', convert: 'percent' }
+        };
+
+        const classMapping = {
+            'Martial Sage': 'sage',
+            'Plume Monarch': 'archer',
+            'Flame Wizard': 'mage',
+            'Crystal Sage': 'crystal',
+            'Shadow Assassin': 'assassin'
+        };
+
+        function toggleOCRSection(who) {
+            const section = document.getElementById(who + 'OCRSection');
+            section.classList.toggle('collapsed');
+        }
+
+        function handleOCRUpload(who, index, input) {
+            if (input.files && input.files[0]) {
+                ocrData[who].files[index] = input.files[0];
+                const zone = input.parentElement;
+                zone.classList.add('has-file');
+                zone.querySelector('.status').textContent = '✓ Uploaded';
+            }
+        }
+
+        function clearOCR(who) {
+            ocrData[who].files = new Array(6).fill(null);
+            ocrData[who].results = {};
+            
+            for (let i = 0; i <= 5; i++) {
+                const input = document.getElementById(who + 'OCR' + i);
+                const zone = input.parentElement;
+                input.value = '';
+                zone.classList.remove('has-file', 'processing');
+                zone.querySelector('.status').textContent = 'Click to upload';
+            }
+            
+            document.getElementById(who + 'OCRProgress').classList.remove('active');
+            document.getElementById(who + 'OCRStatus').textContent = '';
+            document.getElementById(who + 'OCRResults').classList.remove('active');
+        }
+
+        async function processOCR(who) {
+            const files = ocrData[who].files;
+            const uploadedCount = files.filter(f => f !== null).length;
+            
+            if (uploadedCount === 0) {
+                alert('Please upload at least one screenshot');
+                return;
+            }
+
+            const progressBar = document.getElementById(who + 'OCRProgressBar');
+            const progressContainer = document.getElementById(who + 'OCRProgress');
+            const statusEl = document.getElementById(who + 'OCRStatus');
+            const resultsEl = document.getElementById(who + 'OCRResults');
+            const statsListEl = document.getElementById(who + 'OCRStatsList');
+
+            progressContainer.classList.add('active');
+            resultsEl.classList.remove('active');
+            
+            const allStats = { player: {}, enemy: {} };
+            let processedCount = 0;
+
+            try {
+                // Initialize Tesseract worker
+                statusEl.textContent = 'Initializing OCR engine...';
+                const worker = await Tesseract.createWorker('eng');
+
+                for (let i = 0; i < files.length; i++) {
+                    if (!files[i]) continue;
+
+                    const zone = document.getElementById(who + 'OCR' + i).parentElement;
+                    zone.classList.add('processing');
+                    
+                    statusEl.textContent = `Processing screenshot ${i === 0 ? 'Profile' : 'Compare ' + i}...`;
+                    
+                    const { data } = await worker.recognize(files[i]);
+                    const text = data.text;
+
+                    if (i === 0) {
+                        // Profile card - extract class and level
+                        parseProfileCard(text, allStats);
+                    } else {
+                        // Compare screen - extract stats
+                        parseCompareScreen(text, allStats);
+                    }
+
+                    zone.classList.remove('processing');
+                    processedCount++;
+                    const progress = Math.round((processedCount / uploadedCount) * 100);
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                }
+
+                await worker.terminate();
+
+                // Apply stats based on mode
+                const mode = document.querySelector(`input[name="${who}OCRMode"]:checked`).value;
+                applyOCRStats(who, allStats, mode);
+
+                // Show results
+                displayOCRResults(who, allStats, mode, statsListEl);
+                resultsEl.classList.add('active');
+                statusEl.textContent = 'OCR complete! Stats applied to form.';
+
+            } catch (error) {
+                statusEl.textContent = 'Error: ' + error.message;
+                console.error('OCR Error:', error);
+            }
+        }
+
+        function parseProfileCard(text, allStats) {
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                // Look for level
+                const levelMatch = line.match(/Lv\.?\s*(\d+)/i);
+                if (levelMatch) {
+                    allStats.player.Level = levelMatch[1];
+                    allStats.enemy.Level = levelMatch[1];
+                }
+
+                // Look for class
+                for (const [className, classValue] of Object.entries(classMapping)) {
+                    if (line.includes(className)) {
+                        allStats.player.Class = classValue;
+                        allStats.enemy.Class = classValue;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function parseCompareScreen(text, allStats) {
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                // Try to match each known stat label
+                for (const [label, mapping] of Object.entries(statMapping)) {
+                    // Create flexible regex for the label
+                    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(escapedLabel + '\\s*[:\\|]?\\s*([\\d.,]+[BMK%]?)\\s*(?:[\\|>]|vs)?\\s*([\\d.,]+[BMK%]?)?', 'i');
+                    
+                    const match = line.match(regex);
+                    if (match) {
+                        const value1 = parseStatValue(match[1], mapping.convert);
+                        const value2 = match[2] ? parseStatValue(match[2], mapping.convert) : null;
+                        
+                        if (value1 !== null) {
+                            allStats.player[mapping.field] = value1;
+                        }
+                        if (value2 !== null) {
+                            allStats.enemy[mapping.field] = value2;
+                        }
+                    }
+                }
+
+                // Alternative parsing for table format: look for patterns like "stat | value1 | value2"
+                // Also handle OCR quirks with | being read as I or l
+                const tableMatch = line.match(/(.+?)\s+(\d[\d.,]*[BMK%]?)\s+(\d[\d.,]*[BMK%]?)/);
+                if (tableMatch) {
+                    const labelPart = tableMatch[1].trim();
+                    for (const [label, mapping] of Object.entries(statMapping)) {
+                        // Fuzzy match - allow for OCR errors
+                        if (labelPart.toLowerCase().includes(label.toLowerCase().substring(0, 6))) {
+                            const value1 = parseStatValue(tableMatch[2], mapping.convert);
+                            const value2 = parseStatValue(tableMatch[3], mapping.convert);
+                            
+                            if (value1 !== null && !allStats.player[mapping.field]) {
+                                allStats.player[mapping.field] = value1;
+                            }
+                            if (value2 !== null && !allStats.enemy[mapping.field]) {
+                                allStats.enemy[mapping.field] = value2;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function parseStatValue(str, convertType) {
+            if (!str) return null;
+            
+            // Clean the string
+            str = str.trim().replace(/,/g, '');
+            
+            // Extract number and suffix
+            const match = str.match(/^([\d.]+)\s*([BMK%]?)$/i);
+            if (!match) return null;
+
+            let value = parseFloat(match[1]);
+            const suffix = match[2].toUpperCase();
+
+            if (isNaN(value)) return null;
+
+            // Handle suffix conversions
+            switch (convertType) {
+                case 'billions':
+                    // Value should be in billions, convert from suffix
+                    if (suffix === 'B') return value;
+                    if (suffix === 'M') return value / 1000;
+                    if (suffix === 'K') return value / 1000000;
+                    return value;
+                    
+                case 'millions':
+                    // Value should be in millions
+                    if (suffix === 'B') return value * 1000;
+                    if (suffix === 'M') return value;
+                    if (suffix === 'K') return value / 1000;
+                    return value;
+                    
+                case 'percent':
+                    // Remove % and return number
+                    return value;
+                    
+                case 'number':
+                default:
+                    return value;
+            }
+        }
+
+        function applyOCRStats(who, allStats, mode) {
+            const prefix = who;
+            let statsToApply;
+
+            if (mode === 'myStats' || mode === 'enemyStats') {
+                // Apply only to the specified target
+                statsToApply = mode === 'myStats' ? allStats.player : allStats.enemy;
+                applyStatsToForm(prefix, statsToApply);
+            } else {
+                // Full matchup - apply player stats to player, enemy stats to enemy
+                applyStatsToForm('player', allStats.player);
+                applyStatsToForm('enemy', allStats.enemy);
+            }
+        }
+
+        function applyStatsToForm(prefix, stats) {
+            for (const [field, value] of Object.entries(stats)) {
+                const el = document.getElementById(prefix + field);
+                if (el && value !== null && value !== undefined) {
+                    if (el.tagName === 'SELECT') {
+                        el.value = value;
+                    } else {
+                        // Round appropriately
+                        if (typeof value === 'number') {
+                            el.value = Number.isInteger(value) ? value : value.toFixed(2);
+                        } else {
+                            el.value = value;
+                        }
+                    }
+                }
+            }
+        }
+
+        function displayOCRResults(who, allStats, mode, container) {
+            let html = '';
+            const stats = mode === 'myStats' ? allStats.player : 
+                         mode === 'enemyStats' ? allStats.enemy :
+                         { ...allStats.player, ...allStats.enemy };
+
+            const displayStats = mode.includes('full') ? 
+                { 'Player': allStats.player, 'Enemy': allStats.enemy } :
+                { [who.charAt(0).toUpperCase() + who.slice(1)]: stats };
+
+            for (const [source, sourceStats] of Object.entries(displayStats)) {
+                html += `<strong>${source}:</strong><br>`;
+                let count = 0;
+                for (const [field, value] of Object.entries(sourceStats)) {
+                    if (value !== null && value !== undefined) {
+                        html += `<div class="ocr-stat-row"><span>${field}</span><span>${value}</span></div>`;
+                        count++;
+                    }
+                }
+                if (count === 0) {
+                    html += '<div style="color: #888;">No stats extracted</div>';
+                }
+                html += '<br>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function showOCRInstructions() {
+            alert(`📸 Screenshot Import Instructions:
+
+1. PROFILE CARD (Screenshot 1):
+   - Open opponent's profile
+   - Screenshot the card showing Name, Class, Level
+
+2. COMPARE SCREEN (Screenshots 2-6):
+   - Tap "Compare" button on profile
+   - Take 5 screenshots as you scroll:
+     • Screenshot 2: Top (HP, ATK, DEF, Crit stats)
+     • Screenshot 3: Middle-top (Combo, Counter, Stun)
+     • Screenshot 4: Middle (Multipliers, RES stats)
+     • Screenshot 5: Middle-bottom (Skill, Boss, Pal)
+     • Screenshot 6: Bottom (Healing, DMG RES)
+
+3. UPLOAD & PROCESS:
+   - Upload screenshots in order
+   - Click "Process Screenshots"
+   - Review extracted stats
+   - Edit any values that need correction
+
+TIP: For best OCR accuracy, ensure screenshots are clear and not cropped too tight.`);
+        }
+    </script>
+</body>
+</html>
