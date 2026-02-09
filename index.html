@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 3.4</title>
+    <title>LoM Battle Simulator - Alpha 3.5</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -707,7 +707,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.4</span></h1>
+            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.5</span></h1>
             <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
         </div>
 
@@ -1576,6 +1576,35 @@
             return dmg / pvpFactor;
         }
 
+        // HP-Based Damage Calculation (per Yuko's PDF)
+        // Used for avians, artifacts, and skills that deal HP% damage
+        function calcHPDamage(attacker, defender, targetHP, hpPercent, isMaxHP, pvpFactor) {
+            // Step 1: Calculate raw HP damage × PvP factor
+            let hpDmg = targetHP * (hpPercent / 100) * pvpFactor;
+            
+            // Step 2: Calculate basic ATK damage (no resistances, no crit) for min/max caps
+            const atkMinusDef = Math.max(1, attacker.atk - defender.def);
+            const basicATKDmg = atkMinusDef * (attacker.basicATKMult / 100);
+            
+            // Step 3: Calculate min and max caps
+            const minDmg = basicATKDmg * 0.8;
+            const maxMult = isMaxHP ? 100 : 50; // 100× for max HP, 50× for current HP
+            const maxDmg = basicATKDmg * maxMult;
+            
+            // Step 4: Clamp HP damage to min/max
+            let finalDmg;
+            if (hpDmg <= minDmg) {
+                finalDmg = minDmg;
+            } else if (hpDmg >= maxDmg) {
+                finalDmg = maxDmg;
+            } else {
+                finalDmg = hpDmg;
+            }
+            
+            // Step 5: Divide by PvP factor for final damage
+            return finalDmg / pvpFactor;
+        }
+
         function applyCrit(baseDmg, attacker, defender) {
             const critMult = Math.max(1.5, attacker.critDMG / defender.critRES);
             return baseDmg * critMult;
@@ -1711,7 +1740,11 @@
                         const counterCrit = roll(enemy.critRate - player.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, enemy, player);
 
-                        if (enemyBladesReunionActive > time) counterDmg += (enemy.hp * 0.01) / pvpFactor;
+                        // Blades Reunion: counters deal +1% of attacker's current HP
+                        if (enemyBladesReunionActive > time) {
+                            const hpBonusDmg = calcHPDamage(enemy, player, enemy.hp, 1, false, pvpFactor);
+                            counterDmg += hpBonusDmg;
+                        }
 
                         const counterResult = dealDamage(player, counterDmg);
                         enemy.totalDamageDealt += counterResult.total;
@@ -1763,7 +1796,11 @@
                         const counterCrit = roll(player.critRate - enemy.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, player, enemy);
 
-                        if (playerBladesReunionActive > time) counterDmg += (player.hp * 0.01) / pvpFactor;
+                        // Blades Reunion: counters deal +1% of attacker's current HP
+                        if (playerBladesReunionActive > time) {
+                            const hpBonusDmg = calcHPDamage(player, enemy, player.hp, 1, false, pvpFactor);
+                            counterDmg += hpBonusDmg;
+                        }
 
                         const counterResult = dealDamage(enemy, counterDmg);
                         player.totalDamageDealt += counterResult.total;
