@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 3.5</title>
+    <title>LoM Battle Simulator - Alpha 3.6</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -1287,8 +1287,21 @@
                             <span class="pal-effect">(Skill CDR +25%)</span>
                         </div>
 
+                        <div class="subsection-title">Avian</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="playerAvian">Avian Companion</label>
+                                <select id="playerAvian">
+                                    <option value="none">None</option>
+                                    <option value="killerBee" selected>Killer Bee</option>
+                                    <option value="bladePierce">Blade Pierce</option>
+                                    <option value="firePhoenix">Fire Phoenix</option>
+                                    <option value="iceOwl">Ice Owl</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="info-box">
-                            <strong>Note:</strong> Equipment dropdowns (Avian, Mount, Artifact, Back) coming in future update. Pals are functional now.
+                            <strong>Avians</strong> deal HP%-based damage periodically. Killer Bee: 3% MaxHP/3s | Blade Pierce: 2% CurHP/2s | Fire Phoenix: 2.5% MaxHP/3s | Ice Owl: 1.5% CurHP/2s
                         </div>
                     </div>
 
@@ -1310,6 +1323,20 @@
                             <input type="checkbox" id="enemyPalHydro">
                             <label for="enemyPalHydro">Warlord Hydrosprite</label>
                             <span class="pal-effect">(Skill CDR +25%)</span>
+                        </div>
+
+                        <div class="subsection-title">Avian</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="enemyAvian">Avian Companion</label>
+                                <select id="enemyAvian">
+                                    <option value="none">None</option>
+                                    <option value="killerBee" selected>Killer Bee</option>
+                                    <option value="bladePierce">Blade Pierce</option>
+                                    <option value="firePhoenix">Fire Phoenix</option>
+                                    <option value="iceOwl">Ice Owl</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1431,6 +1458,15 @@
         const PVP_HEALING_REDUCTION = 0.30;
         const PVP_SHIELD_REDUCTION = 0.40;
 
+        // Avian companions - HP% damage dealers
+        const AVIANS = {
+            none:       { name: 'None',         hpPercent: 0,   interval: 0, isMaxHP: false },
+            killerBee:  { name: 'Killer Bee',   hpPercent: 3,   interval: 3, isMaxHP: true  },
+            bladePierce:{ name: 'Blade Pierce', hpPercent: 2,   interval: 2, isMaxHP: false },
+            firePhoenix:{ name: 'Fire Phoenix',hpPercent: 2.5, interval: 3, isMaxHP: true  },
+            iceOwl:     { name: 'Ice Owl',      hpPercent: 1.5, interval: 2, isMaxHP: false }
+        };
+
         let hpChart = null;
 
         // ============================================
@@ -1529,6 +1565,8 @@
                 hasElectricPup: document.getElementById(prefix + 'PalPup').checked,
                 hasHydrosprite: document.getElementById(prefix + 'PalHydro').checked,
 
+                avian: document.getElementById(prefix + 'Avian').value,
+
                 totalDamageDealt: 0,
                 healProcs: 0,
                 shield: 0
@@ -1618,8 +1656,8 @@
             const player = gatherStats('player');
             const enemy = gatherStats('enemy');
 
-            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen - 10);
-            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen - 10);
+            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen * 0.9); // -10% regen
+            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen * 0.9); // -10% regen
 
             const avgLevel = Math.floor((player.level + enemy.level) / 2);
             const pvpFactor = PVP_FACTORS[avgLevel] || 471.70;
@@ -1646,6 +1684,20 @@
 
             let playerBladesReunionActive = 0;
             let enemyBladesReunionActive = 0;
+
+            // Blades Reunion counter RES debuff tracking
+            let playerCounterRESDebuff = 0; // time when debuff expires on player
+            let enemyCounterRESDebuff = 0;  // time when debuff expires on enemy
+
+            // Avian attack timing
+            const playerAvian = AVIANS[player.avian] || AVIANS.none;
+            const enemyAvian = AVIANS[enemy.avian] || AVIANS.none;
+            let playerNextAvian = playerAvian.interval > 0 ? playerAvian.interval : Infinity;
+            let enemyNextAvian = enemyAvian.interval > 0 ? enemyAvian.interval : Infinity;
+
+            // General regen timing (ticks every 1s)
+            let playerNextGeneralRegen = 1;
+            let enemyNextGeneralRegen = 1;
 
             const battleLog = [];
             let winner = null;
@@ -1736,7 +1788,14 @@
 
                     const effectiveCounter = Math.max(0, enemy.counter - player.ignoreCounter);
                     if (roll(effectiveCounter)) {
+                        // Apply Blades Reunion -40% Counter RES debuff on player if active
+                        const savedPlayerCounterRES = player.counterRES;
+                        if (playerCounterRESDebuff > time) {
+                            player.counterRES = clamp(player.counterRES - 40, -100, 80);
+                        }
                         let counterDmg = calcCounterDamage(enemy, player, pvpFactor);
+                        player.counterRES = savedPlayerCounterRES;
+
                         const counterCrit = roll(enemy.critRate - player.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, enemy, player);
 
@@ -1749,7 +1808,8 @@
                         const counterResult = dealDamage(player, counterDmg);
                         enemy.totalDamageDealt += counterResult.total;
                         const counterShieldNote = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
-                        log(`  ← Enemy Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+                        const debuffNote = playerCounterRESDebuff > time ? ' [RES-40%]' : '';
+                        log(`  ← Enemy Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}${debuffNote}`, counterCrit ? 'crit' : 'damage');
 
                         if (enemy.hasElectricPup) {
                             const lostHP = enemy.maxHP - enemy.hp;
@@ -1792,7 +1852,14 @@
 
                     const effectiveCounter = Math.max(0, player.counter - enemy.ignoreCounter);
                     if (roll(effectiveCounter)) {
+                        // Apply Blades Reunion -40% Counter RES debuff on enemy if active
+                        const savedEnemyCounterRES = enemy.counterRES;
+                        if (enemyCounterRESDebuff > time) {
+                            enemy.counterRES = clamp(enemy.counterRES - 40, -100, 80);
+                        }
                         let counterDmg = calcCounterDamage(player, enemy, pvpFactor);
+                        enemy.counterRES = savedEnemyCounterRES;
+
                         const counterCrit = roll(player.critRate - enemy.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, player, enemy);
 
@@ -1805,7 +1872,8 @@
                         const counterResult = dealDamage(enemy, counterDmg);
                         player.totalDamageDealt += counterResult.total;
                         const counterShieldNote = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
-                        log(`  ← Player Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+                        const debuffNote = enemyCounterRESDebuff > time ? ' [RES-40%]' : '';
+                        log(`  ← Player Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}${debuffNote}`, counterCrit ? 'crit' : 'damage');
 
                         if (player.hasElectricPup) {
                             const lostHP = player.maxHP - player.hp;
@@ -1819,21 +1887,35 @@
                 if (player.class === 'sage' && time >= playerClassSkillCD) {
                     playerClassSkillCD = time + playerClassSkillBase;
                     playerBladesReunionActive = time + 8;
-                    const skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
+                    enemyCounterRESDebuff = time + 8; // -40% Counter DMG RES on enemy for 8s
+                    let skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
+                    // Skill crit check
+                    const skillCrit = roll(player.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, player.skillCritDMG / enemy.critRES);
+                        skillDmg *= skillCritMult;
+                    }
                     const result = dealDamage(enemy, skillDmg);
                     player.totalDamageDealt += result.total;
                     const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
-                    log(`Player BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
+                    log(`Player BLADES REUNION: ${formatNumber(result.total)}${shieldNote}${skillCrit ? ' CRIT!' : ''} [Enemy Counter RES -40% for 8s]`, 'skill');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
                     enemyClassSkillCD = time + enemyClassSkillBase;
                     enemyBladesReunionActive = time + 8;
-                    const skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
+                    playerCounterRESDebuff = time + 8; // -40% Counter DMG RES on player for 8s
+                    let skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
+                    // Skill crit check
+                    const skillCrit = roll(enemy.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, enemy.skillCritDMG / player.critRES);
+                        skillDmg *= skillCritMult;
+                    }
                     const result = dealDamage(player, skillDmg);
                     enemy.totalDamageDealt += result.total;
                     const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
-                    log(`Enemy BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
+                    log(`Enemy BLADES REUNION: ${formatNumber(result.total)}${shieldNote}${skillCrit ? ' CRIT!' : ''} [Player Counter RES -40% for 8s]`, 'skill');
                 }
 
                 // Sage passives
@@ -1869,6 +1951,40 @@
                 }
                 if (enemy.shield > 0 && time >= enemyShieldExpires) {
                     enemy.shield = 0;
+                }
+
+                // Player avian attacks enemy
+                if (time >= playerNextAvian && playerAvian.hpPercent > 0) {
+                    playerNextAvian = time + playerAvian.interval;
+                    const targetHP = playerAvian.isMaxHP ? enemy.maxHP : enemy.hp;
+                    let avianDmg = calcHPDamage(player, enemy, targetHP, playerAvian.hpPercent, playerAvian.isMaxHP, pvpFactor);
+                    const avianResult = dealDamage(enemy, avianDmg);
+                    player.totalDamageDealt += avianResult.total;
+                    const avianShieldNote = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
+                    log(`Player ${playerAvian.name}: ${formatNumber(avianResult.total)}${avianShieldNote} [${playerAvian.hpPercent}% ${playerAvian.isMaxHP ? 'Max' : 'Cur'} HP]`, 'damage');
+                }
+
+                // Enemy avian attacks player
+                if (time >= enemyNextAvian && enemyAvian.hpPercent > 0) {
+                    enemyNextAvian = time + enemyAvian.interval;
+                    const targetHP = enemyAvian.isMaxHP ? player.maxHP : player.hp;
+                    let avianDmg = calcHPDamage(enemy, player, targetHP, enemyAvian.hpPercent, enemyAvian.isMaxHP, pvpFactor);
+                    const avianResult = dealDamage(player, avianDmg);
+                    enemy.totalDamageDealt += avianResult.total;
+                    const avianShieldNote = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
+                    log(`Enemy ${enemyAvian.name}: ${formatNumber(avianResult.total)}${avianShieldNote} [${enemyAvian.hpPercent}% ${enemyAvian.isMaxHP ? 'Max' : 'Cur'} HP]`, 'damage');
+                }
+
+                // General regen (ticks every 1s, affected by PvP healing reduction)
+                if (player.regen > 0 && time >= playerNextGeneralRegen) {
+                    playerNextGeneralRegen = time + 1;
+                    const healed = heal(player, player.maxHP * (player.regen / 100));
+                    if (healed > 0) log(`[Heal] Player Regen: ${formatNumber(healed)} (${player.regen}%)`, 'heal');
+                }
+                if (enemy.regen > 0 && time >= enemyNextGeneralRegen) {
+                    enemyNextGeneralRegen = time + 1;
+                    const healed = heal(enemy, enemy.maxHP * (enemy.regen / 100));
+                    if (healed > 0) log(`[Heal] Enemy Regen: ${formatNumber(healed)} (${enemy.regen}%)`, 'heal');
                 }
 
                 sampleHP();
@@ -2027,6 +2143,7 @@
             config.PalWolf = document.getElementById(prefix + 'PalWolf').checked;
             config.PalPup = document.getElementById(prefix + 'PalPup').checked;
             config.PalHydro = document.getElementById(prefix + 'PalHydro').checked;
+            config.Avian = document.getElementById(prefix + 'Avian').value;
 
             return config;
         }
@@ -2084,6 +2201,7 @@
             document.getElementById(who + 'PalWolf').checked = false;
             document.getElementById(who + 'PalPup').checked = false;
             document.getElementById(who + 'PalHydro').checked = false;
+            document.getElementById(who + 'Avian').value = 'killerBee';
         }
 
         // =====================================
