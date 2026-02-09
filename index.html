@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 3.3</title>
+    <title>LoM Battle Simulator - Alpha 3.4</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -707,7 +707,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.3</span></h1>
+            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.4</span></h1>
             <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
         </div>
 
@@ -808,11 +808,11 @@
                     
                     <div class="ocr-review-columns">
                         <div class="ocr-review-column">
-                            <h4 style="color: #667eea; margin-bottom: 10px;">[P] Player Stats</h4>
+                            <h4 style="color: #667eea; margin-bottom: 10px;">Player Stats</h4>
                             <div id="ocrPlayerReview"></div>
                         </div>
                         <div class="ocr-review-column" id="ocrEnemyColumn">
-                            <h4 style="color: #e94560; margin-bottom: 10px;">Enemy Enemy Stats</h4>
+                            <h4 style="color: #e94560; margin-bottom: 10px;">Enemy Stats</h4>
                             <div id="ocrEnemyReview"></div>
                         </div>
                     </div>
@@ -1333,7 +1333,7 @@
 
                 <div class="battle-display">
                     <div class="fighter-card">
-                        <h4>[P] Player</h4>
+                        <h4>Player</h4>
                         <div class="hp-bar">
                             <div class="hp-fill" id="playerHPBar" style="width: 100%;">100%</div>
                         </div>
@@ -1341,7 +1341,7 @@
                     </div>
                     <div class="vs-badge">VS</div>
                     <div class="fighter-card">
-                        <h4>Enemy Enemy</h4>
+                        <h4>Enemy</h4>
                         <div class="hp-bar">
                             <div class="hp-fill enemy" id="enemyHPBar" style="width: 100%;">100%</div>
                         </div>
@@ -1610,8 +1610,10 @@
 
             let playerNextRegen = 5;
             let playerNextShield = 10;
+            let playerShieldExpires = 0;
             let enemyNextRegen = 5;
             let enemyNextShield = 10;
+            let enemyShieldExpires = 0;
 
             let playerBladesReunionActive = 0;
             let enemyBladesReunionActive = 0;
@@ -1813,13 +1815,23 @@
                 if (player.class === 'sage' && time >= playerNextShield) {
                     playerNextShield = time + 10;
                     player.shield = player.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
-                    log(`[Shield] Player Sage Shield: ${formatNumber(player.shield)}`, 'skill');
+                    playerShieldExpires = time + 5; // Shield lasts 5 seconds
+                    log(`[Shield] Player Sage Shield: ${formatNumber(player.shield)} (5s)`, 'skill');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyNextShield) {
                     enemyNextShield = time + 10;
                     enemy.shield = enemy.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
-                    log(`[Shield] Enemy Sage Shield: ${formatNumber(enemy.shield)}`, 'skill');
+                    enemyShieldExpires = time + 5; // Shield lasts 5 seconds
+                    log(`[Shield] Enemy Sage Shield: ${formatNumber(enemy.shield)} (5s)`, 'skill');
+                }
+
+                // Expire shields after duration
+                if (player.shield > 0 && time >= playerShieldExpires) {
+                    player.shield = 0;
+                }
+                if (enemy.shield > 0 && time >= enemyShieldExpires) {
+                    enemy.shield = 0;
                 }
 
                 sampleHP();
