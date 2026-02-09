@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 3.5</title>
+    <title>LoM Battle Simulator - Alpha 3.6</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -1287,8 +1287,53 @@
                             <span class="pal-effect">(Skill CDR +25%)</span>
                         </div>
 
+                        <div class="subsection-title">Avian</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="playerAvian">Avian Companion</label>
+                                <select id="playerAvian" onchange="onAvianChange('player')">
+                                    <option value="none">None</option>
+                                    <option value="bee" selected>Honeypot Warrior (Bee)</option>
+                                    <option value="deity">Deity of Purrs</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="playerAvianHPPercent">Avian HP %</label>
+                                <input type="number" id="playerAvianHPPercent" value="2.5" step="0.1" min="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="playerAvianInterval">Interval (s) / Heal Count</label>
+                                <input type="number" id="playerAvianInterval" value="5" step="1" min="1">
+                            </div>
+                        </div>
                         <div class="info-box">
-                            <strong>Note:</strong> Equipment dropdowns (Avian, Mount, Artifact, Back) coming in future update. Pals are functional now.
+                            <strong>Bee:</strong> 2.5% Max HP every 5s | <strong>Deity:</strong> 4% Current HP per 16 heals received
+                        </div>
+
+                        <div class="subsection-title">Avian Affixes</div>
+                        <div class="input-grid input-grid-4">
+                            <div class="input-group">
+                                <label><input type="checkbox" id="playerAffixPunchCounter"> Punch Counter</label>
+                                <input type="number" id="playerAffixPunchCounterHP" value="0.5" step="0.1" min="0" title="% of current HP on counter (50% chance)">
+                            </div>
+                            <div class="input-group">
+                                <label><input type="checkbox" id="playerAffixWindTear"> Wind Tear</label>
+                                <input type="number" id="playerAffixWindTearHP" value="1" step="0.1" min="0" title="% of target current HP on active skill">
+                            </div>
+                            <div class="input-group">
+                                <label><input type="checkbox" id="playerAffixRageSlash"> Rage Slash</label>
+                                <input type="number" id="playerAffixRageSlashATK" value="0.4" step="0.1" min="0" title="% ATK boost per second (>50% HP, max 30 stacks)">
+                            </div>
+                            <div class="input-group">
+                                <label><input type="checkbox" id="playerAffixTerminalStrike"> Terminal Strike</label>
+                                <input type="number" id="playerAffixTerminalStrikeChance" value="8" step="1" min="0" max="100" title="% chance per basic ATK to wound (-50% regen/healing 1s)">
+                            </div>
+                        </div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label><input type="checkbox" id="playerAffixNoSpeeding"> No Speeding</label>
+                                <input type="number" id="playerAffixNoSpeedingReduce" value="8" step="1" min="0" title="% reduction to enemy active skill duration">
+                            </div>
                         </div>
                     </div>
 
@@ -1310,6 +1355,52 @@
                             <input type="checkbox" id="enemyPalHydro">
                             <label for="enemyPalHydro">Warlord Hydrosprite</label>
                             <span class="pal-effect">(Skill CDR +25%)</span>
+                        </div>
+
+                        <div class="subsection-title">Avian</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="enemyAvian">Avian Companion</label>
+                                <select id="enemyAvian" onchange="onAvianChange('enemy')">
+                                    <option value="none">None</option>
+                                    <option value="bee" selected>Honeypot Warrior (Bee)</option>
+                                    <option value="deity">Deity of Purrs</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyAvianHPPercent">Avian HP %</label>
+                                <input type="number" id="enemyAvianHPPercent" value="2.5" step="0.1" min="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyAvianInterval">Interval (s) / Heal Count</label>
+                                <input type="number" id="enemyAvianInterval" value="5" step="1" min="1">
+                            </div>
+                        </div>
+
+                        <div class="subsection-title">Avian Affixes</div>
+                        <div class="input-grid input-grid-4">
+                            <div class="input-group">
+                                <label><input type="checkbox" id="enemyAffixPunchCounter"> Punch Counter</label>
+                                <input type="number" id="enemyAffixPunchCounterHP" value="0.5" step="0.1" min="0" title="% of current HP on counter (50% chance)">
+                            </div>
+                            <div class="input-group">
+                                <label><input type="checkbox" id="enemyAffixWindTear"> Wind Tear</label>
+                                <input type="number" id="enemyAffixWindTearHP" value="1" step="0.1" min="0" title="% of target current HP on active skill">
+                            </div>
+                            <div class="input-group">
+                                <label><input type="checkbox" id="enemyAffixRageSlash"> Rage Slash</label>
+                                <input type="number" id="enemyAffixRageSlashATK" value="0.4" step="0.1" min="0" title="% ATK boost per second (>50% HP, max 30 stacks)">
+                            </div>
+                            <div class="input-group">
+                                <label><input type="checkbox" id="enemyAffixTerminalStrike"> Terminal Strike</label>
+                                <input type="number" id="enemyAffixTerminalStrikeChance" value="8" step="1" min="0" max="100" title="% chance per basic ATK to wound (-50% regen/healing 1s)">
+                            </div>
+                        </div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label><input type="checkbox" id="enemyAffixNoSpeeding"> No Speeding</label>
+                                <input type="number" id="enemyAffixNoSpeedingReduce" value="8" step="1" min="0" title="% reduction to enemy active skill duration">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1431,6 +1522,14 @@
         const PVP_HEALING_REDUCTION = 0.30;
         const PVP_SHIELD_REDUCTION = 0.40;
 
+        // Avian companions (from LOM_all_game_data.json)
+        // Bee = timed HP% procs, Deity = heal-count triggered HP% procs
+        const AVIANS = {
+            none:    { name: 'None',             type: 'none' },
+            bee:     { name: 'Honeypot Warrior', type: 'timed',     hpPercent: 2.5, interval: 5, isMaxHP: true  },
+            deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false }
+        };
+
         let hpChart = null;
 
         // ============================================
@@ -1449,6 +1548,21 @@
             const title = el.previousElementSibling;
             el.classList.toggle('collapsed');
             title.classList.toggle('collapsed');
+        }
+
+        function onAvianChange(prefix) {
+            const sel = document.getElementById(prefix + 'Avian').value;
+            const avian = AVIANS[sel] || AVIANS.none;
+            if (avian.type === 'timed') {
+                document.getElementById(prefix + 'AvianHPPercent').value = avian.hpPercent;
+                document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+            } else if (avian.type === 'healcount') {
+                document.getElementById(prefix + 'AvianHPPercent').value = avian.hpPercent;
+                document.getElementById(prefix + 'AvianInterval').value = avian.healThreshold;
+            } else {
+                document.getElementById(prefix + 'AvianHPPercent').value = 0;
+                document.getElementById(prefix + 'AvianInterval').value = 0;
+            }
         }
 
         // ============================================
@@ -1529,10 +1643,32 @@
                 hasElectricPup: document.getElementById(prefix + 'PalPup').checked,
                 hasHydrosprite: document.getElementById(prefix + 'PalHydro').checked,
 
+                avian: document.getElementById(prefix + 'Avian').value,
+                avianHPPercent: parseFloat(document.getElementById(prefix + 'AvianHPPercent').value),
+                avianInterval: parseFloat(document.getElementById(prefix + 'AvianInterval').value),
+
+                // Avian affixes
+                affixPunchCounter: document.getElementById(prefix + 'AffixPunchCounter').checked,
+                affixPunchCounterHP: parseFloat(document.getElementById(prefix + 'AffixPunchCounterHP').value),
+                affixWindTear: document.getElementById(prefix + 'AffixWindTear').checked,
+                affixWindTearHP: parseFloat(document.getElementById(prefix + 'AffixWindTearHP').value),
+                affixRageSlash: document.getElementById(prefix + 'AffixRageSlash').checked,
+                affixRageSlashATK: parseFloat(document.getElementById(prefix + 'AffixRageSlashATK').value),
+                affixTerminalStrike: document.getElementById(prefix + 'AffixTerminalStrike').checked,
+                affixTerminalStrikeChance: parseFloat(document.getElementById(prefix + 'AffixTerminalStrikeChance').value),
+                affixNoSpeeding: document.getElementById(prefix + 'AffixNoSpeeding').checked,
+                affixNoSpeedingReduce: parseFloat(document.getElementById(prefix + 'AffixNoSpeedingReduce').value),
+
                 totalDamageDealt: 0,
                 healProcs: 0,
-                shield: 0
+                healCount: 0, // for Deity of Purrs tracking
+                shield: 0,
+                rageSlashStacks: 0, // for Rage Slash tracking
+                baseATK: 0, // stored after parsing for Rage Slash
+                woundedUntil: 0 // Terminal Strike wound debuff expiry
             };
+
+            stats.baseATK = stats.atk; // preserve original ATK for Rage Slash stacking
 
             if (stats.hasElectricPup) stats.counterMult += 60;
             if (stats.hasHydrosprite) stats.cdr += 25;
@@ -1618,8 +1754,8 @@
             const player = gatherStats('player');
             const enemy = gatherStats('enemy');
 
-            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen - 10);
-            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen - 10);
+            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen * 0.9); // -10% regen
+            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen * 0.9); // -10% regen
 
             const avgLevel = Math.floor((player.level + enemy.level) / 2);
             const pvpFactor = PVP_FACTORS[avgLevel] || 471.70;
@@ -1646,6 +1782,30 @@
 
             let playerBladesReunionActive = 0;
             let enemyBladesReunionActive = 0;
+
+            // Blades Reunion counter RES debuff tracking
+            let playerCounterRESDebuff = 0; // time when debuff expires on player
+            let enemyCounterRESDebuff = 0;  // time when debuff expires on enemy
+
+            // Avian setup using user-editable values
+            const playerAvianType = (AVIANS[player.avian] || AVIANS.none).type;
+            const enemyAvianType = (AVIANS[enemy.avian] || AVIANS.none).type;
+            // Bee (timed): interval = seconds between procs
+            // Deity (healcount): interval = heal count threshold
+            let playerNextAvian = (playerAvianType === 'timed' && player.avianHPPercent > 0) ? player.avianInterval : Infinity;
+            let enemyNextAvian = (enemyAvianType === 'timed' && enemy.avianHPPercent > 0) ? enemy.avianInterval : Infinity;
+
+            // No Speeding: reduce enemy active skill buff durations
+            const playerNoSpeedingMult = enemy.affixNoSpeeding ? (1 - enemy.affixNoSpeedingReduce / 100) : 1;
+            const enemyNoSpeedingMult = player.affixNoSpeeding ? (1 - player.affixNoSpeedingReduce / 100) : 1;
+
+            // Rage Slash: ATK stacking timer (once per second when >50% HP)
+            let playerNextRageSlash = player.affixRageSlash ? 1 : Infinity;
+            let enemyNextRageSlash = enemy.affixRageSlash ? 1 : Infinity;
+
+            // General regen timing (ticks every 1s)
+            let playerNextGeneralRegen = 1;
+            let enemyNextGeneralRegen = 1;
 
             const battleLog = [];
             let winner = null;
@@ -1694,9 +1854,14 @@
 
             function heal(target, amount) {
                 amount *= PVP_HEALING_REDUCTION;
+                // Terminal Strike wound: -50% regen/healing
+                if (target.woundedUntil > time) {
+                    amount *= 0.5;
+                }
                 const healed = Math.min(amount, target.maxHP - target.hp);
                 target.hp += healed;
                 target.healProcs++;
+                target.healCount++;
                 return healed;
             }
 
@@ -1721,12 +1886,18 @@
                         const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
                         log(`Player Basic ATK: ${formatNumber(result.total)}${shieldNote}${isCrit ? ' CRIT!' : ''}`, isCrit ? 'crit' : 'damage');
 
+                        // Terminal Strike: chance to wound target (-50% regen/healing for 1s)
+                        if (player.affixTerminalStrike && roll(player.affixTerminalStrikeChance)) {
+                            enemy.woundedUntil = time + 1;
+                            log(`  → Terminal Strike! Enemy wounded (heal -50% for 1s)`, 'damage');
+                        }
+
                         const effectiveCombo = Math.max(0, player.combo - enemy.ignoreCombo);
                         if (roll(effectiveCombo)) {
                             let comboDmg = calcComboDamage(player, enemy, pvpFactor);
                             const comboCrit = roll(player.critRate - enemy.ignoreCrit);
                             if (comboCrit) comboDmg = applyCrit(comboDmg, player, enemy);
-                            
+
                             const comboResult = dealDamage(enemy, comboDmg);
                             player.totalDamageDealt += comboResult.total;
                             const comboShieldNote = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
@@ -1736,7 +1907,14 @@
 
                     const effectiveCounter = Math.max(0, enemy.counter - player.ignoreCounter);
                     if (roll(effectiveCounter)) {
+                        // Apply Blades Reunion -40% Counter RES debuff on player if active
+                        const savedPlayerCounterRES = player.counterRES;
+                        if (playerCounterRESDebuff > time) {
+                            player.counterRES = clamp(player.counterRES - 40, -100, 80);
+                        }
                         let counterDmg = calcCounterDamage(enemy, player, pvpFactor);
+                        player.counterRES = savedPlayerCounterRES;
+
                         const counterCrit = roll(enemy.critRate - player.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, enemy, player);
 
@@ -1746,10 +1924,17 @@
                             counterDmg += hpBonusDmg;
                         }
 
+                        // Punch Counter affix: 50% chance to deal extra HP% on counter
+                        if (enemy.affixPunchCounter && roll(50)) {
+                            const pcDmg = calcHPDamage(enemy, player, enemy.hp, enemy.affixPunchCounterHP, false, pvpFactor);
+                            counterDmg += pcDmg;
+                        }
+
                         const counterResult = dealDamage(player, counterDmg);
                         enemy.totalDamageDealt += counterResult.total;
                         const counterShieldNote = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
-                        log(`  ← Enemy Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+                        const debuffNote = playerCounterRESDebuff > time ? ' [RES-40%]' : '';
+                        log(`  ← Enemy Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}${debuffNote}`, counterCrit ? 'crit' : 'damage');
 
                         if (enemy.hasElectricPup) {
                             const lostHP = enemy.maxHP - enemy.hp;
@@ -1777,6 +1962,12 @@
                         const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
                         log(`Enemy Basic ATK: ${formatNumber(result.total)}${shieldNote}${isCrit ? ' CRIT!' : ''}`, isCrit ? 'crit' : 'damage');
 
+                        // Terminal Strike: chance to wound target (-50% regen/healing for 1s)
+                        if (enemy.affixTerminalStrike && roll(enemy.affixTerminalStrikeChance)) {
+                            player.woundedUntil = time + 1;
+                            log(`  → Terminal Strike! Player wounded (heal -50% for 1s)`, 'damage');
+                        }
+
                         const effectiveCombo = Math.max(0, enemy.combo - player.ignoreCombo);
                         if (roll(effectiveCombo)) {
                             let comboDmg = calcComboDamage(enemy, player, pvpFactor);
@@ -1792,7 +1983,14 @@
 
                     const effectiveCounter = Math.max(0, player.counter - enemy.ignoreCounter);
                     if (roll(effectiveCounter)) {
+                        // Apply Blades Reunion -40% Counter RES debuff on enemy if active
+                        const savedEnemyCounterRES = enemy.counterRES;
+                        if (enemyCounterRESDebuff > time) {
+                            enemy.counterRES = clamp(enemy.counterRES - 40, -100, 80);
+                        }
                         let counterDmg = calcCounterDamage(player, enemy, pvpFactor);
+                        enemy.counterRES = savedEnemyCounterRES;
+
                         const counterCrit = roll(player.critRate - enemy.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, player, enemy);
 
@@ -1802,10 +2000,17 @@
                             counterDmg += hpBonusDmg;
                         }
 
+                        // Punch Counter affix: 50% chance to deal extra HP% on counter
+                        if (player.affixPunchCounter && roll(50)) {
+                            const pcDmg = calcHPDamage(player, enemy, player.hp, player.affixPunchCounterHP, false, pvpFactor);
+                            counterDmg += pcDmg;
+                        }
+
                         const counterResult = dealDamage(enemy, counterDmg);
                         player.totalDamageDealt += counterResult.total;
                         const counterShieldNote = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
-                        log(`  ← Player Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+                        const debuffNote = enemyCounterRESDebuff > time ? ' [RES-40%]' : '';
+                        log(`  ← Player Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}${debuffNote}`, counterCrit ? 'crit' : 'damage');
 
                         if (player.hasElectricPup) {
                             const lostHP = player.maxHP - player.hp;
@@ -1818,22 +2023,48 @@
                 // Class skills
                 if (player.class === 'sage' && time >= playerClassSkillCD) {
                     playerClassSkillCD = time + playerClassSkillBase;
-                    playerBladesReunionActive = time + 8;
-                    const skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
+                    const buffDur = 8 * playerNoSpeedingMult; // No Speeding reduces buff duration
+                    playerBladesReunionActive = time + buffDur;
+                    enemyCounterRESDebuff = time + buffDur;
+                    let skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
+                    // Wind Tear affix: active skills deal extra HP% of target current HP
+                    if (player.affixWindTear) {
+                        const wtDmg = calcHPDamage(player, enemy, enemy.hp, player.affixWindTearHP, false, pvpFactor);
+                        skillDmg += wtDmg;
+                    }
+                    // Skill crit check
+                    const skillCrit = roll(player.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, player.skillCritDMG / enemy.critRES);
+                        skillDmg *= skillCritMult;
+                    }
                     const result = dealDamage(enemy, skillDmg);
                     player.totalDamageDealt += result.total;
                     const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
-                    log(`Player BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
+                    log(`Player BLADES REUNION: ${formatNumber(result.total)}${shieldNote}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s]`, 'skill');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
                     enemyClassSkillCD = time + enemyClassSkillBase;
-                    enemyBladesReunionActive = time + 8;
-                    const skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
+                    const buffDur = 8 * enemyNoSpeedingMult; // No Speeding reduces buff duration
+                    enemyBladesReunionActive = time + buffDur;
+                    playerCounterRESDebuff = time + buffDur;
+                    let skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
+                    // Wind Tear affix: active skills deal extra HP% of target current HP
+                    if (enemy.affixWindTear) {
+                        const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
+                        skillDmg += wtDmg;
+                    }
+                    // Skill crit check
+                    const skillCrit = roll(enemy.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, enemy.skillCritDMG / player.critRES);
+                        skillDmg *= skillCritMult;
+                    }
                     const result = dealDamage(player, skillDmg);
                     enemy.totalDamageDealt += result.total;
                     const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
-                    log(`Enemy BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
+                    log(`Enemy BLADES REUNION: ${formatNumber(result.total)}${shieldNote}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s]`, 'skill');
                 }
 
                 // Sage passives
@@ -1869,6 +2100,77 @@
                 }
                 if (enemy.shield > 0 && time >= enemyShieldExpires) {
                     enemy.shield = 0;
+                }
+
+                // === AVIAN DAMAGE ===
+                // Bee (timed): fires every N seconds
+                if (playerAvianType === 'timed' && player.avianHPPercent > 0 && time >= playerNextAvian) {
+                    playerNextAvian = time + player.avianInterval;
+                    const isMax = (AVIANS[player.avian] || AVIANS.none).isMaxHP !== false;
+                    const targetHP = isMax ? enemy.maxHP : enemy.hp;
+                    let avianDmg = calcHPDamage(player, enemy, targetHP, player.avianHPPercent, isMax, pvpFactor);
+                    const avianResult = dealDamage(enemy, avianDmg);
+                    player.totalDamageDealt += avianResult.total;
+                    const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
+                    log(`Player Bee: ${formatNumber(avianResult.total)}${sn} [${player.avianHPPercent}% ${isMax ? 'Max' : 'Cur'} HP]`, 'damage');
+                }
+                if (enemyAvianType === 'timed' && enemy.avianHPPercent > 0 && time >= enemyNextAvian) {
+                    enemyNextAvian = time + enemy.avianInterval;
+                    const isMax = (AVIANS[enemy.avian] || AVIANS.none).isMaxHP !== false;
+                    const targetHP = isMax ? player.maxHP : player.hp;
+                    let avianDmg = calcHPDamage(enemy, player, targetHP, enemy.avianHPPercent, isMax, pvpFactor);
+                    const avianResult = dealDamage(player, avianDmg);
+                    enemy.totalDamageDealt += avianResult.total;
+                    const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
+                    log(`Enemy Bee: ${formatNumber(avianResult.total)}${sn} [${enemy.avianHPPercent}% ${isMax ? 'Max' : 'Cur'} HP]`, 'damage');
+                }
+
+                // Deity (healcount): fires when heal count reaches threshold
+                if (playerAvianType === 'healcount' && player.avianHPPercent > 0 && player.healCount >= player.avianInterval) {
+                    player.healCount -= player.avianInterval;
+                    const targetHP = enemy.hp; // Deity uses current HP
+                    let avianDmg = calcHPDamage(player, enemy, targetHP, player.avianHPPercent, false, pvpFactor);
+                    const avianResult = dealDamage(enemy, avianDmg);
+                    player.totalDamageDealt += avianResult.total;
+                    const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
+                    log(`Player Deity: ${formatNumber(avianResult.total)}${sn} [${player.avianHPPercent}% Cur HP]`, 'damage');
+                }
+                if (enemyAvianType === 'healcount' && enemy.avianHPPercent > 0 && enemy.healCount >= enemy.avianInterval) {
+                    enemy.healCount -= enemy.avianInterval;
+                    const targetHP = player.hp;
+                    let avianDmg = calcHPDamage(enemy, player, targetHP, enemy.avianHPPercent, false, pvpFactor);
+                    const avianResult = dealDamage(player, avianDmg);
+                    enemy.totalDamageDealt += avianResult.total;
+                    const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
+                    log(`Enemy Deity: ${formatNumber(avianResult.total)}${sn} [${enemy.avianHPPercent}% Cur HP]`, 'damage');
+                }
+
+                // === RAGE SLASH: +ATK% per second when >50% HP, max 30 stacks ===
+                if (player.affixRageSlash && time >= playerNextRageSlash) {
+                    playerNextRageSlash = time + 1;
+                    if (player.hp > player.maxHP * 0.5 && player.rageSlashStacks < 30) {
+                        player.rageSlashStacks++;
+                        player.atk = player.baseATK * (1 + player.rageSlashStacks * player.affixRageSlashATK / 100);
+                    }
+                }
+                if (enemy.affixRageSlash && time >= enemyNextRageSlash) {
+                    enemyNextRageSlash = time + 1;
+                    if (enemy.hp > enemy.maxHP * 0.5 && enemy.rageSlashStacks < 30) {
+                        enemy.rageSlashStacks++;
+                        enemy.atk = enemy.baseATK * (1 + enemy.rageSlashStacks * enemy.affixRageSlashATK / 100);
+                    }
+                }
+
+                // General regen (ticks every 1s, affected by PvP healing reduction)
+                if (player.regen > 0 && time >= playerNextGeneralRegen) {
+                    playerNextGeneralRegen = time + 1;
+                    const healed = heal(player, player.maxHP * (player.regen / 100));
+                    if (healed > 0) log(`[Heal] Player Regen: ${formatNumber(healed)} (${player.regen}%)`, 'heal');
+                }
+                if (enemy.regen > 0 && time >= enemyNextGeneralRegen) {
+                    enemyNextGeneralRegen = time + 1;
+                    const healed = heal(enemy, enemy.maxHP * (enemy.regen / 100));
+                    if (healed > 0) log(`[Heal] Enemy Regen: ${formatNumber(healed)} (${enemy.regen}%)`, 'heal');
                 }
 
                 sampleHP();
@@ -2027,6 +2329,21 @@
             config.PalWolf = document.getElementById(prefix + 'PalWolf').checked;
             config.PalPup = document.getElementById(prefix + 'PalPup').checked;
             config.PalHydro = document.getElementById(prefix + 'PalHydro').checked;
+            config.Avian = document.getElementById(prefix + 'Avian').value;
+            config.AvianHPPercent = document.getElementById(prefix + 'AvianHPPercent').value;
+            config.AvianInterval = document.getElementById(prefix + 'AvianInterval').value;
+
+            // Avian affixes
+            config.AffixPunchCounter = document.getElementById(prefix + 'AffixPunchCounter').checked;
+            config.AffixPunchCounterHP = document.getElementById(prefix + 'AffixPunchCounterHP').value;
+            config.AffixWindTear = document.getElementById(prefix + 'AffixWindTear').checked;
+            config.AffixWindTearHP = document.getElementById(prefix + 'AffixWindTearHP').value;
+            config.AffixRageSlash = document.getElementById(prefix + 'AffixRageSlash').checked;
+            config.AffixRageSlashATK = document.getElementById(prefix + 'AffixRageSlashATK').value;
+            config.AffixTerminalStrike = document.getElementById(prefix + 'AffixTerminalStrike').checked;
+            config.AffixTerminalStrikeChance = document.getElementById(prefix + 'AffixTerminalStrikeChance').value;
+            config.AffixNoSpeeding = document.getElementById(prefix + 'AffixNoSpeeding').checked;
+            config.AffixNoSpeedingReduce = document.getElementById(prefix + 'AffixNoSpeedingReduce').value;
 
             return config;
         }
@@ -2084,6 +2401,21 @@
             document.getElementById(who + 'PalWolf').checked = false;
             document.getElementById(who + 'PalPup').checked = false;
             document.getElementById(who + 'PalHydro').checked = false;
+            document.getElementById(who + 'Avian').value = 'bee';
+            document.getElementById(who + 'AvianHPPercent').value = '2.5';
+            document.getElementById(who + 'AvianInterval').value = '5';
+
+            // Reset affixes
+            document.getElementById(who + 'AffixPunchCounter').checked = false;
+            document.getElementById(who + 'AffixPunchCounterHP').value = '0.5';
+            document.getElementById(who + 'AffixWindTear').checked = false;
+            document.getElementById(who + 'AffixWindTearHP').value = '1';
+            document.getElementById(who + 'AffixRageSlash').checked = false;
+            document.getElementById(who + 'AffixRageSlashATK').value = '0.4';
+            document.getElementById(who + 'AffixTerminalStrike').checked = false;
+            document.getElementById(who + 'AffixTerminalStrikeChance').value = '8';
+            document.getElementById(who + 'AffixNoSpeeding').checked = false;
+            document.getElementById(who + 'AffixNoSpeedingReduce').value = '8';
         }
 
         // =====================================
