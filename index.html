@@ -278,11 +278,11 @@
         }
 
         .ocr-title::before {
-            content: 'ðŸ“¸';
+            content: 'Import';
         }
 
         .ocr-title::after {
-            content: 'â–¼';
+            content: '▼';
             font-size: 0.8em;
             transition: transform 0.3s;
         }
@@ -684,12 +684,12 @@
         }
 
         .collapsible::before {
-            content: 'â–¼ ';
+            content: '▼ ';
             font-size: 0.8em;
         }
 
         .collapsible.collapsed::before {
-            content: 'â–¶ ';
+            content: '▶ ';
         }
 
         .collapse-content {
@@ -707,23 +707,23 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>âš”ï¸ Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.3</span></h1>
+            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.3</span></h1>
             <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
         </div>
 
         <div class="content">
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab" onclick="showTab('import')">ðŸ“¸ Import</button>
-                <button class="tab active" onclick="showTab('player')">ðŸ‘¤ Player</button>
-                <button class="tab" onclick="showTab('enemy')">ðŸ‘¹ Enemy</button>
-                <button class="tab" onclick="showTab('equipment')">ðŸŽ’ Equipment</button>
-                <button class="tab" onclick="showTab('skills')">âš¡ Skills</button>
+                <button class="tab" onclick="showTab('import')">Import</button>
+                <button class="tab active" onclick="showTab('player')">Player</button>
+                <button class="tab" onclick="showTab('enemy')">Enemy</button>
+                <button class="tab" onclick="showTab('equipment')">Equipment</button>
+                <button class="tab" onclick="showTab('skills')">Skills</button>
             </div>
 
             <!-- Import Tab (OCR) -->
             <div id="tab-import" class="tab-content">
-                <div class="section-title">ðŸ“¸ Screenshot Import (OCR)</div>
+                <div class="section-title">Import Screenshot Import (OCR)</div>
                 
                 <div class="info-box info">
                     <strong>How it works:</strong> Upload screenshots from the Compare screen. OCR extracts stats for both players automatically.
@@ -744,43 +744,43 @@
                 <div class="subsection-title">Upload Screenshots</div>
                 <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
                     Upload 1 Profile card + 5 Compare screen scrolls (6 total). 
-                    <a href="#" onclick="showOCRInstructions(); return false;">ðŸ“‹ View detailed instructions</a>
+                    <a href="#" onclick="showOCRInstructions(); return false;">📋 View detailed instructions</a>
                 </p>
 
                 <div class="upload-zones" id="ocrUploadZones">
                     <div class="upload-zone" onclick="document.getElementById('ocr0').click()">
                         <input type="file" id="ocr0" accept="image/*" onchange="handleOCRUpload(0, this)">
-                        <div class="icon">ðŸ‘¤</div>
+                        <div class="icon">[Player] </div>
                         <div class="label">Profile Card</div>
                         <div class="status">Click to upload</div>
                     </div>
                     <div class="upload-zone" onclick="document.getElementById('ocr1').click()">
                         <input type="file" id="ocr1" accept="image/*" onchange="handleOCRUpload(1, this)">
-                        <div class="icon">ðŸ“Š</div>
+                        <div class="icon">📊</div>
                         <div class="label">Compare 1/5</div>
                         <div class="status">Click to upload</div>
                     </div>
                     <div class="upload-zone" onclick="document.getElementById('ocr2').click()">
                         <input type="file" id="ocr2" accept="image/*" onchange="handleOCRUpload(2, this)">
-                        <div class="icon">ðŸ“Š</div>
+                        <div class="icon">📊</div>
                         <div class="label">Compare 2/5</div>
                         <div class="status">Click to upload</div>
                     </div>
                     <div class="upload-zone" onclick="document.getElementById('ocr3').click()">
                         <input type="file" id="ocr3" accept="image/*" onchange="handleOCRUpload(3, this)">
-                        <div class="icon">ðŸ“Š</div>
+                        <div class="icon">📊</div>
                         <div class="label">Compare 3/5</div>
                         <div class="status">Click to upload</div>
                     </div>
                     <div class="upload-zone" onclick="document.getElementById('ocr4').click()">
                         <input type="file" id="ocr4" accept="image/*" onchange="handleOCRUpload(4, this)">
-                        <div class="icon">ðŸ“Š</div>
+                        <div class="icon">📊</div>
                         <div class="label">Compare 4/5</div>
                         <div class="status">Click to upload</div>
                     </div>
                     <div class="upload-zone" onclick="document.getElementById('ocr5').click()">
                         <input type="file" id="ocr5" accept="image/*" onchange="handleOCRUpload(5, this)">
-                        <div class="icon">ðŸ“Š</div>
+                        <div class="icon">📊</div>
                         <div class="label">Compare 5/5</div>
                         <div class="status">Click to upload</div>
                     </div>
@@ -792,34 +792,34 @@
                 <div class="ocr-status" id="ocrStatus"></div>
 
                 <div class="ocr-btn-row" style="margin-top: 15px;">
-                    <button class="btn btn-secondary" onclick="processOCR()">ðŸ” Process Screenshots</button>
-                    <button class="btn btn-outline" onclick="clearOCR()">ðŸ—‘ï¸ Clear All</button>
+                    <button class="btn btn-secondary" onclick="processOCR()">🔍 Process Screenshots</button>
+                    <button class="btn btn-outline" onclick="clearOCR()">🗑️ Clear All</button>
                 </div>
 
                 <!-- OCR Results Review Panel -->
                 <div class="ocr-review-panel" id="ocrReviewPanel" style="display: none;">
                     <div class="subsection-title" style="margin-top: 25px;">Review Extracted Stats</div>
                     <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
-                        <span style="color: #51cf66;">âœ… High confidence</span> |
-                        <span style="color: #ffc107;">ðŸ”§ Auto-fixed decimal</span> |
-                        <span style="color: #ffc107;">âš ï¸ Low confidence</span> |
-                        <span style="color: #e94560;">âŒ Out of range</span>
+                        <span style="color: #51cf66;">✅ High confidence</span> |
+                        <span style="color: #ffc107;">🔧 Auto-fixed decimal</span> |
+                        <span style="color: #ffc107;">⚠️ Low confidence</span> |
+                        <span style="color: #e94560;">❌ Out of range</span>
                     </p>
                     
                     <div class="ocr-review-columns">
                         <div class="ocr-review-column">
-                            <h4 style="color: #667eea; margin-bottom: 10px;">ðŸ‘¤ Player Stats</h4>
+                            <h4 style="color: #667eea; margin-bottom: 10px;">[P] Player Stats</h4>
                             <div id="ocrPlayerReview"></div>
                         </div>
                         <div class="ocr-review-column" id="ocrEnemyColumn">
-                            <h4 style="color: #e94560; margin-bottom: 10px;">ðŸ‘¹ Enemy Stats</h4>
+                            <h4 style="color: #e94560; margin-bottom: 10px;">Enemy Enemy Stats</h4>
                             <div id="ocrEnemyReview"></div>
                         </div>
                     </div>
 
                     <div class="ocr-btn-row" style="margin-top: 20px; justify-content: center;">
-                        <button class="btn btn-primary" onclick="applyOCRStats()">âœ… Apply Stats to Form</button>
-                        <button class="btn btn-outline" onclick="cancelOCR()">âŒ Cancel</button>
+                        <button class="btn btn-primary" onclick="applyOCRStats()">✅ Apply Stats to Form</button>
+                        <button class="btn btn-outline" onclick="cancelOCR()">❌ Cancel</button>
                     </div>
                 </div>
             </div>
@@ -1039,10 +1039,10 @@
 
                 <!-- Player Import/Export -->
                 <div class="import-export-row">
-                    <button class="btn btn-small btn-success" onclick="exportConfig('player')">ðŸ“¥ Export Player</button>
+                    <button class="btn btn-small btn-success" onclick="exportConfig('player')">Export Player</button>
                     <input type="file" id="importPlayerFile" accept=".json" onchange="importConfig('player')">
-                    <button class="btn btn-small btn-outline" onclick="document.getElementById('importPlayerFile').click()">ðŸ“¤ Import Player</button>
-                    <button class="btn btn-small btn-warning" onclick="resetFields('player')">ðŸ”„ Reset Player</button>
+                    <button class="btn btn-small btn-outline" onclick="document.getElementById('importPlayerFile').click()">Import Player</button>
+                    <button class="btn btn-small btn-warning" onclick="resetFields('player')">Reset Player</button>
                 </div>
 
             </div>
@@ -1256,10 +1256,10 @@
 
                 <!-- Enemy Import/Export -->
                 <div class="import-export-row">
-                    <button class="btn btn-small btn-success" onclick="exportConfig('enemy')">ðŸ“¥ Export Enemy</button>
+                    <button class="btn btn-small btn-success" onclick="exportConfig('enemy')">Export Enemy</button>
                     <input type="file" id="importEnemyFile" accept=".json" onchange="importConfig('enemy')">
-                    <button class="btn btn-small btn-outline" onclick="document.getElementById('importEnemyFile').click()">ðŸ“¤ Import Enemy</button>
-                    <button class="btn btn-small btn-warning" onclick="resetFields('enemy')">ðŸ”„ Reset Enemy</button>
+                    <button class="btn btn-small btn-outline" onclick="document.getElementById('importEnemyFile').click()">Import Enemy</button>
+                    <button class="btn btn-small btn-warning" onclick="resetFields('enemy')">Reset Enemy</button>
                 </div>
 
             </div>
@@ -1324,16 +1324,16 @@
 
             <!-- Battle Controls -->
             <div class="button-row">
-                <button class="btn btn-primary" onclick="runSimulation()">âš”ï¸ Run 120s Battle Simulation</button>
+                <button class="btn btn-primary" onclick="runSimulation()">Run 120s Battle Simulation</button>
             </div>
 
             <!-- Results Section -->
             <div id="results-section" class="results-section hidden">
-                <h3>âš”ï¸ Battle Results</h3>
+                <h3>Battle Results</h3>
 
                 <div class="battle-display">
                     <div class="fighter-card">
-                        <h4>ðŸ‘¤ Player</h4>
+                        <h4>[P] Player</h4>
                         <div class="hp-bar">
                             <div class="hp-fill" id="playerHPBar" style="width: 100%;">100%</div>
                         </div>
@@ -1341,7 +1341,7 @@
                     </div>
                     <div class="vs-badge">VS</div>
                     <div class="fighter-card">
-                        <h4>ðŸ‘¹ Enemy</h4>
+                        <h4>Enemy Enemy</h4>
                         <div class="hp-bar">
                             <div class="hp-fill enemy" id="enemyHPBar" style="width: 100%;">100%</div>
                         </div>
@@ -1351,7 +1351,7 @@
 
                 <!-- HP Graph -->
                 <div class="graph-container">
-                    <h4>ðŸ“Š HP Over Time</h4>
+                    <h4>📊 HP Over Time</h4>
                     <div class="chart-wrapper">
                         <canvas id="hpChart"></canvas>
                     </div>
@@ -1699,7 +1699,7 @@
                             const comboResult = dealDamage(enemy, comboDmg);
                             player.totalDamageDealt += comboResult.total;
                             const comboShieldNote = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
-                            log(`  â†’ Combo: ${formatNumber(comboResult.total)}${comboShieldNote}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                            log(`  → Combo: ${formatNumber(comboResult.total)}${comboShieldNote}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
                         }
                     }
 
@@ -1714,12 +1714,12 @@
                         const counterResult = dealDamage(player, counterDmg);
                         enemy.totalDamageDealt += counterResult.total;
                         const counterShieldNote = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
-                        log(`  â† Enemy Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+                        log(`  ← Enemy Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
 
                         if (enemy.hasElectricPup) {
                             const lostHP = enemy.maxHP - enemy.hp;
                             const healed = heal(enemy, lostHP * 0.01);
-                            if (healed > 0) log(`  â† Enemy Pup heal: ${formatNumber(healed)}`, 'heal');
+                            if (healed > 0) log(`  ← Enemy Pup heal: ${formatNumber(healed)}`, 'heal');
                         }
                     }
                 }
@@ -1751,7 +1751,7 @@
                             const comboResult = dealDamage(player, comboDmg);
                             enemy.totalDamageDealt += comboResult.total;
                             const comboShieldNote = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
-                            log(`  â†’ Combo: ${formatNumber(comboResult.total)}${comboShieldNote}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                            log(`  → Combo: ${formatNumber(comboResult.total)}${comboShieldNote}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
                         }
                     }
 
@@ -1766,12 +1766,12 @@
                         const counterResult = dealDamage(enemy, counterDmg);
                         player.totalDamageDealt += counterResult.total;
                         const counterShieldNote = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
-                        log(`  â† Player Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
+                        log(`  ← Player Counter: ${formatNumber(counterResult.total)}${counterShieldNote}${counterCrit ? ' CRIT!' : ''}`, counterCrit ? 'crit' : 'damage');
 
                         if (player.hasElectricPup) {
                             const lostHP = player.maxHP - player.hp;
                             const healed = heal(player, lostHP * 0.01);
-                            if (healed > 0) log(`  â† Player Pup heal: ${formatNumber(healed)}`, 'heal');
+                            if (healed > 0) log(`  ← Player Pup heal: ${formatNumber(healed)}`, 'heal');
                         }
                     }
                 }
@@ -1784,7 +1784,7 @@
                     const result = dealDamage(enemy, skillDmg);
                     player.totalDamageDealt += result.total;
                     const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
-                    log(`âš”ï¸ Player BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
+                    log(`Player BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
@@ -1794,32 +1794,32 @@
                     const result = dealDamage(player, skillDmg);
                     enemy.totalDamageDealt += result.total;
                     const shieldNote = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
-                    log(`âš”ï¸ Enemy BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
+                    log(`Enemy BLADES REUNION: ${formatNumber(result.total)}${shieldNote}`, 'skill');
                 }
 
                 // Sage passives
                 if (player.class === 'sage' && time >= playerNextRegen) {
                     playerNextRegen = time + 5;
                     const healed = heal(player, player.maxHP * 0.08);
-                    log(`ðŸ’š Player Sage Regen: ${formatNumber(healed)}`, 'heal');
+                    log(`[Heal] Player Sage Regen: ${formatNumber(healed)}`, 'heal');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyNextRegen) {
                     enemyNextRegen = time + 5;
                     const healed = heal(enemy, enemy.maxHP * 0.08);
-                    log(`ðŸ’š Enemy Sage Regen: ${formatNumber(healed)}`, 'heal');
+                    log(`[Heal] Enemy Sage Regen: ${formatNumber(healed)}`, 'heal');
                 }
 
                 if (player.class === 'sage' && time >= playerNextShield) {
                     playerNextShield = time + 10;
                     player.shield = player.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
-                    log(`ðŸ›¡ï¸ Player Sage Shield: ${formatNumber(player.shield)}`, 'skill');
+                    log(`[Shield] Player Sage Shield: ${formatNumber(player.shield)}`, 'skill');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyNextShield) {
                     enemyNextShield = time + 10;
                     enemy.shield = enemy.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
-                    log(`ðŸ›¡ï¸ Enemy Sage Shield: ${formatNumber(enemy.shield)}`, 'skill');
+                    log(`[Shield] Enemy Sage Shield: ${formatNumber(enemy.shield)}`, 'skill');
                 }
 
                 sampleHP();
@@ -2124,7 +2124,7 @@
                 ocrFiles[index] = input.files[0];
                 const zone = input.parentElement;
                 zone.classList.add('has-file');
-                zone.querySelector('.status').textContent = 'âœ“ ' + input.files[0].name.substring(0, 12);
+                zone.querySelector('.status').textContent = '✓ ' + input.files[0].name.substring(0, 12);
             }
         }
 
@@ -2314,7 +2314,7 @@
             for (const divisor of divisors) {
                 const corrected = value / divisor;
                 if (corrected >= min && corrected <= max) {
-                    console.log(`Decimal recovery: ${value} -> ${corrected} (Ã·${divisor})`);
+                    console.log(`Decimal recovery: ${value} -> ${corrected} (÷${divisor})`);
                     return { value: corrected, inRange: true, corrected: true };
                 }
             }
@@ -2324,7 +2324,7 @@
             for (const mult of multipliers) {
                 const corrected = value * mult;
                 if (corrected >= min && corrected <= max && value < min) {
-                    console.log(`Decimal recovery (multiply): ${value} -> ${corrected} (Ã—${mult})`);
+                    console.log(`Decimal recovery (multiply): ${value} -> ${corrected} (×${mult})`);
                     return { value: corrected, inRange: true, corrected: true };
                 }
             }
@@ -2401,17 +2401,17 @@
             let html = '';
             for (const [field, data] of Object.entries(stats)) {
                 let statusClass = 'confident';
-                let statusIcon = 'âœ…';
+                let statusIcon = '✅';
                 
                 if (!data.inRange) {
                     statusClass = 'error';
-                    statusIcon = 'âŒ';
+                    statusIcon = '❌';
                 } else if (data.corrected) {
                     statusClass = 'warning';
-                    statusIcon = 'ðŸ”§'; // Auto-corrected decimal
+                    statusIcon = '🔧'; // Auto-corrected decimal
                 } else if (data.confidence < 70) {
                     statusClass = 'warning';
-                    statusIcon = 'âš ï¸';
+                    statusIcon = '⚠️';
                 }
 
                 const displayValue = typeof data.value === 'number' ? 
@@ -2469,7 +2469,7 @@
         }
 
         function showOCRInstructions() {
-            alert(`ðŸ“¸ Screenshot Import Instructions:
+            alert(`Import Screenshot Import Instructions:
 
 1. PROFILE CARD (Screenshot 1):
    - Open opponent's profile
@@ -2478,23 +2478,23 @@
 2. COMPARE SCREEN (Screenshots 2-6):
    - Tap "Compare" button on profile
    - Take 5 screenshots as you scroll down:
-     â€¢ Screenshot 2: Top (HP, ATK, DEF, Crit stats)
-     â€¢ Screenshot 3: Combo, Counter, Stun, Evasion
-     â€¢ Screenshot 4: Multipliers and RES stats
-     â€¢ Screenshot 5: Skill, Boss, Pal stats
-     â€¢ Screenshot 6: Bottom (Healing, DMG RES)
+     • Screenshot 2: Top (HP, ATK, DEF, Crit stats)
+     • Screenshot 3: Combo, Counter, Stun, Evasion
+     • Screenshot 4: Multipliers and RES stats
+     • Screenshot 5: Skill, Boss, Pal stats
+     • Screenshot 6: Bottom (Healing, DMG RES)
 
 3. REVIEW & APPLY:
    - Upload screenshots in order
    - Click "Process Screenshots"
-   - Review flagged stats (âš ï¸ or âŒ)
+   - Review flagged stats (⚠️ or ❌)
    - Edit any incorrect values
    - Click "Apply Stats to Form"
 
 TIPS:
-â€¢ High-quality screenshots work best
-â€¢ Avoid cropping too tight
-â€¢ Stats flagged âŒ are likely misread - verify manually`);
+• High-quality screenshots work best
+• Avoid cropping too tight
+• Stats flagged ❌ are likely misread - verify manually`);
         }
     </script>
 </body>
