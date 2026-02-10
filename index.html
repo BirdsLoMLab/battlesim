@@ -1307,8 +1307,8 @@
                             </div>
                         </div>
                         <div class="info-box">
-                            <strong>Bee:</strong> 2.5% Max HP DMG every 5s | <strong>Deity:</strong> 4% Current HP DMG per 16 heals received<br>
-                            <small style="opacity:0.7">HP DMG values = % of target HP. No resistances apply. Cannot crit.</small>
+                            <strong>Bee:</strong> 2.5% of player's Max HP every 5s | <strong>Deity:</strong> 4% of player's Current HP per 16 heals received<br>
+                            <small style="opacity:0.7">HP DMG values = % of player's own HP. No resistances apply. Cannot crit.</small>
                         </div>
 
                         <div class="subsection-title">Avian Affixes</div>
@@ -2166,8 +2166,8 @@
                 if (playerAvianType === 'timed' && player.avianHPPercent > 0 && time >= playerNextAvian) {
                     playerNextAvian = time + player.avianInterval;
                     const isMax = (AVIANS[player.avian] || AVIANS.none).isMaxHP !== false;
-                    const targetHP = isMax ? enemy.maxHP : enemy.hp;
-                    const avianDmg = calcHPDamage(player, enemy, targetHP, player.avianHPPercent, isMax, pvpFactor);
+                    const sourceHP = isMax ? player.maxHP : player.hp;
+                    const avianDmg = calcHPDamage(player, enemy, sourceHP, player.avianHPPercent, isMax, pvpFactor);
                     const avianResult = dealDamage(enemy, avianDmg);
                     player.totalDamageDealt += avianResult.total;
                     player.dmgAvian += avianResult.total;
@@ -2178,8 +2178,8 @@
                 if (enemyAvianType === 'timed' && enemy.avianHPPercent > 0 && time >= enemyNextAvian) {
                     enemyNextAvian = time + enemy.avianInterval;
                     const isMax = (AVIANS[enemy.avian] || AVIANS.none).isMaxHP !== false;
-                    const targetHP = isMax ? player.maxHP : player.hp;
-                    const avianDmg = calcHPDamage(enemy, player, targetHP, enemy.avianHPPercent, isMax, pvpFactor);
+                    const sourceHP = isMax ? enemy.maxHP : enemy.hp;
+                    const avianDmg = calcHPDamage(enemy, player, sourceHP, enemy.avianHPPercent, isMax, pvpFactor);
                     const avianResult = dealDamage(player, avianDmg);
                     enemy.totalDamageDealt += avianResult.total;
                     enemy.dmgAvian += avianResult.total;
@@ -2191,7 +2191,7 @@
                 // Deity (healcount): fires every 16 heals (fixed threshold)
                 if (playerAvianType === 'healcount' && player.avianHPPercent > 0 && player.healCount >= 16) {
                     player.healCount -= 16;
-                    const avianDmg = calcHPDamage(player, enemy, enemy.hp, player.avianHPPercent, false, pvpFactor);
+                    const avianDmg = calcHPDamage(player, enemy, player.hp, player.avianHPPercent, false, pvpFactor);
                     const avianResult = dealDamage(enemy, avianDmg);
                     player.totalDamageDealt += avianResult.total;
                     player.dmgAvian += avianResult.total;
@@ -2201,7 +2201,7 @@
                 }
                 if (enemyAvianType === 'healcount' && enemy.avianHPPercent > 0 && enemy.healCount >= 16) {
                     enemy.healCount -= 16;
-                    const avianDmg = calcHPDamage(enemy, player, player.hp, enemy.avianHPPercent, false, pvpFactor);
+                    const avianDmg = calcHPDamage(enemy, player, enemy.hp, enemy.avianHPPercent, false, pvpFactor);
                     const avianResult = dealDamage(player, avianDmg);
                     enemy.totalDamageDealt += avianResult.total;
                     enemy.dmgAvian += avianResult.total;
