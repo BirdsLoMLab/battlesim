@@ -1410,7 +1410,18 @@
             <!-- Skills Tab -->
             <div id="tab-skills" class="tab-content">
                 <div class="info-box info">
-                    <strong>Note:</strong> Active skills coming in future update. Class skill (Blades Reunion for Martial Sage) is currently active and functional.
+                    <strong>Note:</strong> Equip up to 5 active skills per side. Class skill (Blades Reunion for Martial Sage) is always active.
+                    Check "Custom" to override the skill damage % (values scale with level in-game).
+                </div>
+                <div class="two-column">
+                    <div>
+                        <div class="section-title">Player Skills</div>
+                        <div id="playerSkillSlots"></div>
+                    </div>
+                    <div>
+                        <div class="section-title">Enemy Skills</div>
+                        <div id="enemySkillSlots"></div>
+                    </div>
                 </div>
             </div>
 
@@ -1540,6 +1551,96 @@
             deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false }
         };
 
+        // Active skills (up to 5 equippable per side)
+        // dmgPercent = base value from JSON (scales with level; user can override via "Custom" checkbox)
+        // Effects: selfBuff, enemyDebuff, dot, hpDot, heal, shield, immunity, execute, stacking, cc
+        const ACTIVE_SKILLS = [
+            { id: 0,  name: 'Spore Bomb',        cd: 7,  dmgPercent: 136,   hits: 2, rarity: 'Normal',
+              desc: '2 hits, each 68% DMG' },
+            { id: 1,  name: 'Schroom Cap',        cd: 9,  dmgPercent: 194,   rarity: 'Normal',
+              desc: '194% AoE DMG' },
+            { id: 2,  name: 'Spore Barrage',      cd: 7,  dmgPercent: 165.5, hits: 5, rarity: 'Normal',
+              desc: '5 hits, each 33.1% DMG' },
+            { id: 3,  name: 'Boulder Impact',     cd: 12, dmgPercent: 380,   rarity: 'Unique',
+              desc: '76% DMG/s for 5s', dot: { tickPercent: 76, interval: 1, duration: 5 } },
+            { id: 4,  name: 'Thorn Thicket',      cd: 8,  dmgPercent: 265,   rarity: 'Unique',
+              desc: '53% DMG/s + 40% slow for 5s', dot: { tickPercent: 53, interval: 1, duration: 5 },
+              enemyDebuff: { stat: 'atkSpd', mult: 0.6, duration: 5 } },
+            { id: 5,  name: 'Lead the Charge',    cd: 14, dmgPercent: 438,   rarity: 'Unique',
+              desc: '438% DMG, +30% Basic ATK DMG 5s', selfBuff: { stat: 'basicATKMult', addPercent: 30, duration: 5 } },
+            { id: 6,  name: 'Entangling Vines',   cd: 8,  dmgPercent: 394,   rarity: 'Well',
+              desc: '394% DMG + 1s imprison' },
+            { id: 7,  name: 'Speed Surge',        cd: 14, dmgPercent: 656,   rarity: 'Well',
+              desc: '656% DMG, +30% ATK SPD 5s', selfBuff: { stat: 'atkSpd', mult: 1.3, duration: 5 } },
+            { id: 8,  name: 'Spider Weaver',      cd: 10, dmgPercent: 480,   rarity: 'Well',
+              desc: '96% AoE DMG/s for 5s', dot: { tickPercent: 96, interval: 1, duration: 5 } },
+            { id: 9,  name: 'Pineapple Plunge',   cd: 11, dmgPercent: 985,   hits: 5, rarity: 'Rare',
+              desc: '5 hits, each 197% AoE DMG' },
+            { id: 10, name: 'Pearl Release',      cd: 11, dmgPercent: 789,   rarity: 'Rare',
+              desc: '789% AoE DMG + 40% slow 5s', enemyDebuff: { stat: 'atkSpd', mult: 0.6, duration: 5 } },
+            { id: 11, name: 'Sprawling Vine',     cd: 11, dmgPercent: 789,   rarity: 'Rare',
+              desc: '789% AoE DMG + 1s imprison' },
+            { id: 12, name: 'Batty Trace',        cd: 15, dmgPercent: 1575,  rarity: 'Mythic',
+              desc: '315% AoE DMG/s for 5s', dot: { tickPercent: 315, interval: 1, duration: 5 } },
+            { id: 13, name: "Nature's Renewal",   cd: 25, dmgPercent: 1775,  rarity: 'Mythic',
+              desc: '1775% DMG, heal 30% max HP over 5s', heal: { percent: 30, duration: 5 } },
+            { id: 14, name: 'Shroom Shield',      cd: 19, dmgPercent: 1183,  rarity: 'Mythic',
+              desc: '1183% DMG, shield 20% max HP 10s', shield: { percent: 20, duration: 10 } },
+            { id: 15, name: 'Durian Bomb',        cd: 18, dmgPercent: 2664,  hits: 3, rarity: 'Epic',
+              desc: '3 hits 888% AoE DMG + 40% slow 5s', enemyDebuff: { stat: 'atkSpd', mult: 0.6, duration: 5 } },
+            { id: 16, name: 'Easy Breezy',        cd: 15, dmgPercent: 1657,  rarity: 'Epic',
+              desc: '1657% AoE DMG, enemy -20% ATK 5s', enemyDebuff: { stat: 'atk', mult: 0.8, duration: 5 } },
+            { id: 17, name: 'Take It Slow',       cd: 12, dmgPercent: 1635,  rarity: 'Epic',
+              desc: '1635% AoE DMG, enemy -40% ATK SPD 5s', enemyDebuff: { stat: 'atkSpd', mult: 0.6, duration: 5 } },
+            { id: 18, name: 'Coin Bomb',          cd: 13, dmgPercent: 1450,  rarity: 'Epic',
+              desc: '1450% AoE DMG, +35% Basic ATK DMG 5s', selfBuff: { stat: 'basicATKMult', addPercent: 35, duration: 5 } },
+            { id: 19, name: 'Slime Bomb',         cd: 13, dmgPercent: 1450,  rarity: 'Epic',
+              desc: '1450% AoE DMG, +30% Pal DMG 5s', selfBuff: { stat: 'palDMG', addPercent: 30, duration: 5 } },
+            { id: 20, name: 'Meteor Fall',        cd: 13, dmgPercent: 1450,  rarity: 'Epic',
+              desc: '1450% AoE DMG, +30% Skill DMG 5s', selfBuff: { stat: 'skillDMG', addPercent: 30, duration: 5 } },
+            { id: 21, name: 'Disarm',             cd: 16, dmgPercent: 2682,  rarity: 'Legendary',
+              desc: '2682% AoE DMG, disarm 3s', cc: { type: 'disarm', duration: 3 } },
+            { id: 22, name: 'Dazzled',            cd: 19, dmgPercent: 3134,  rarity: 'Legendary',
+              desc: '3134% AoE DMG, stun 1.5s', cc: { type: 'stun', duration: 1.5 } },
+            { id: 23, name: 'Smoke Bomb',         cd: 13, dmgPercent: 2176,  rarity: 'Legendary',
+              desc: '2176% AoE DMG, enemy +30% DMG taken 5s', enemyDebuff: { stat: 'dmgTaken', addPercent: 30, duration: 5 } },
+            { id: 24, name: 'Grim Reaper',        cd: 9,  dmgPercent: 1443,  rarity: 'Legendary',
+              desc: '1443% DMG, instant kill <5% HP', execute: { threshold: 5 } },
+            { id: 26, name: 'Wild Gust',          cd: 16, dmgPercent: 2642,  rarity: 'Legendary',
+              desc: '2642% AoE DMG, +15% ATK 5s', selfBuff: { stat: 'atk', mult: 1.15, duration: 5 } },
+            { id: 27, name: 'Blitz Assault',      cd: 24, dmgPercent: 5829,  rarity: 'Immortal',
+              desc: '5829% DMG, 3s DMG immunity', immunity: { duration: 3 } },
+            { id: 28, name: 'Blade Pierce',       cd: 19, dmgPercent: 4663,  rarity: 'Immortal',
+              desc: '4663% DMG, 1.5% target max HP/s 5s', hpDot: { percent: 1.5, interval: 1, duration: 5, isMaxHP: true, source: 'target' } },
+            { id: 29, name: 'Clone Strike',       cd: 29, dmgPercent: 0,     rarity: 'Immortal',
+              desc: 'Clone 30% HP, 200% basic ATK, 10s', clone: { hpPercent: 30, dmgPercent: 200, duration: 10 } },
+            { id: 30, name: 'Hundred Slashes',    cd: 19, dmgPercent: 4663,  rarity: 'Immortal',
+              desc: '4663% DMG, +20% BasicATK RES + 0.5% ATK of cur HP 5s', exclusive: true,
+              selfBuff: { stat: 'basicATKRES', addPercent: 20, duration: 5 },
+              selfBuff2: { stat: 'atk', hpPercent: 0.5, duration: 5 } },
+            { id: 31, name: 'Windborne Arrow',    cd: 19, dmgPercent: 2665,  rarity: 'Immortal',
+              desc: '2665% DMG, vulnerability 5s: non-skill DMG echoes +100%', exclusive: true,
+              enemyDebuff: { stat: 'vulnerability', echoPct: 100, duration: 5 } },
+            { id: 32, name: 'Crimson Moonfall',   cd: 8,  dmgPercent: 2098,  rarity: 'Immortal',
+              desc: '2098% DMG, +50% per cast (max 3 stacks)', exclusive: true,
+              stacking: { bonusPercent: 50, maxStacks: 3 } },
+            { id: 33, name: 'Dragonic Resonance', cd: 15, dmgPercent: 3731,  rarity: 'Immortal',
+              desc: '3731% DMG + 2% target max HP + 1% per 10% DMGRES', exclusive: true,
+              hpBurst: { basePercent: 2, perDmgResPercent: 1, per: 10, source: 'target' } },
+            { id: 34, name: 'Worldly Snare',      cd: 24, dmgPercent: 5413,  rarity: 'Immortal',
+              desc: '5413% DMG, +10% Crit Rate, per 1% Crit → +3% CritDMG 5s', exclusive: true,
+              selfBuff: { stat: 'critScaling', critRateBonus: 10, critDmgPer1Pct: 3, duration: 5 } },
+            { id: 35, name: 'Star Array',         cd: 19, dmgPercent: 4330,  rarity: 'Immortal',
+              desc: '4330% DMG, +10% Skill Crit, per 1% → +3% SkillCritDMG 5s', exclusive: true,
+              selfBuff: { stat: 'skillCritScaling', skillCritBonus: 10, skillCritDmgPer1Pct: 3, duration: 5 } },
+            { id: 36, name: 'Winged Dreams',      cd: 24, dmgPercent: 5413,  rarity: 'Immortal',
+              desc: '5413% DMG, pals +20% Combo, per 1% → +0.5% Pal ComboMult 5s', exclusive: true,
+              selfBuff: { stat: 'palComboScaling', duration: 5 } },
+            { id: 37, name: 'Ancestral Will',     cd: 24, dmgPercent: 5413,  rarity: 'Immortal',
+              desc: '5413% DMG, pals +10% Crit, per 1% → +5% Pal CritDMG 5s', exclusive: true,
+              selfBuff: { stat: 'palCritScaling', duration: 5 } }
+        ];
+
         let hpChart = null;
 
         // ============================================
@@ -1573,6 +1674,51 @@
                 document.getElementById(prefix + 'AvianHPPercent').value = 0;
                 document.getElementById(prefix + 'AvianInterval').value = 0;
             }
+        }
+
+        // Build skill slot UI (called on page load)
+        function buildSkillSlots() {
+            ['player', 'enemy'].forEach(prefix => {
+                const container = document.getElementById(prefix + 'SkillSlots');
+                let html = '';
+                for (let i = 0; i < 5; i++) {
+                    const sid = `${prefix}Skill${i}`;
+                    html += `<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">`;
+                    html += `<span style="min-width:18px;font-weight:bold;color:#aaa;">${i+1}.</span>`;
+                    html += `<select id="${sid}" onchange="onSkillSlotChange('${prefix}',${i})" style="flex:1;min-width:160px;">`;
+                    html += `<option value="">— None —</option>`;
+                    ACTIVE_SKILLS.forEach(sk => {
+                        html += `<option value="${sk.id}">${sk.name} (${sk.cd}s) [${sk.rarity}]</option>`;
+                    });
+                    html += `</select>`;
+                    html += `<label style="font-size:0.8em;white-space:nowrap;"><input type="checkbox" id="${sid}Custom" onchange="onSkillSlotChange('${prefix}',${i})"> Custom</label>`;
+                    html += `<input type="number" id="${sid}Dmg" style="width:80px;display:none;" step="100" min="0" placeholder="DMG%">`;
+                    html += `<span id="${sid}Desc" style="font-size:0.75em;color:#999;width:100%;margin-left:26px;"></span>`;
+                    html += `</div>`;
+                }
+                container.innerHTML = html;
+            });
+        }
+
+        function onSkillSlotChange(prefix, slot) {
+            const sid = `${prefix}Skill${slot}`;
+            const selVal = document.getElementById(sid).value;
+            const isCustom = document.getElementById(sid + 'Custom').checked;
+            const dmgInput = document.getElementById(sid + 'Dmg');
+            const descEl = document.getElementById(sid + 'Desc');
+
+            if (selVal === '') {
+                dmgInput.style.display = 'none';
+                descEl.textContent = '';
+                return;
+            }
+
+            const skill = ACTIVE_SKILLS.find(s => s.id === parseInt(selVal));
+            if (!skill) return;
+
+            dmgInput.style.display = isCustom ? 'inline-block' : 'none';
+            if (!isCustom) dmgInput.value = '';
+            descEl.textContent = skill.desc;
         }
 
         // ============================================
@@ -1677,27 +1823,54 @@
                 baseATK: 0,
                 woundedUntil: 0,
 
+                // Active skills (5 slots)
+                activeSkills: [],
+
                 // Per-source damage tracking
                 dmgBasicATK: 0,
                 dmgCombo: 0,
                 dmgCounter: 0,
-                dmgSageClassSkillHP: 0, // +1% HP counter bonus from Blades Reunion
+                dmgSageClassSkillHP: 0,
                 dmgPunchCounter: 0,
-                dmgSkill: 0,
+                dmgClassSkill: 0,
+                dmgActiveSkills: 0,
                 dmgWindTear: 0,
                 dmgAvian: 0,
+                dmgDot: 0,
+                dmgHpDot: 0,
+                dmgClone: 0,
                 // Counts
                 counterCount: 0,
                 evadeCount: 0,
                 comboCount: 0,
-                skillCount: 0,
+                classSkillCount: 0,
+                activeSkillCount: 0,
                 avianCount: 0,
                 punchCounterCount: 0,
                 windTearCount: 0,
                 terminalStrikeCount: 0
             };
 
-            stats.baseATK = stats.atk; // preserve original ATK for Rage Slash stacking
+            // Read active skill slots
+            for (let i = 0; i < 5; i++) {
+                const sel = document.getElementById(prefix + 'Skill' + i);
+                if (!sel || sel.value === '') continue;
+                const skillData = ACTIVE_SKILLS.find(s => s.id === parseInt(sel.value));
+                if (!skillData) continue;
+                const isCustom = document.getElementById(prefix + 'Skill' + i + 'Custom').checked;
+                const customDmg = parseFloat(document.getElementById(prefix + 'Skill' + i + 'Dmg').value);
+                stats.activeSkills.push({
+                    ...skillData,
+                    dmgPercent: (isCustom && !isNaN(customDmg)) ? customDmg : skillData.dmgPercent,
+                    _cd: 0, // next fire time (starts at 0 so fires immediately? no, stagger)
+                    _dotEnd: 0, _dotNext: 0, _dotTickPct: 0,
+                    _hpDotEnd: 0, _hpDotNext: 0,
+                    _cloneEnd: 0, _cloneNextAtk: 0,
+                    _moonStacks: 0
+                });
+            }
+
+            stats.baseATK = stats.atk;
 
             if (stats.hasElectricPup) stats.counterMult += 60;
             if (stats.hasHydrosprite) stats.cdr += 25;
@@ -1832,6 +2005,34 @@
             let playerNextRageSlash = player.affixRageSlash ? 1 : Infinity;
             let enemyNextRageSlash = enemy.affixRageSlash ? 1 : Infinity;
 
+            // CC state: stun/disarm prevent basic attacks (but not counters or skills)
+            let playerCCUntil = 0; // player can't basic attack until this time
+            let enemyCCUntil = 0;
+
+            // Immunity state
+            let playerImmuneUntil = 0;
+            let enemyImmuneUntil = 0;
+
+            // Vulnerability debuff (Windborne Arrow): non-skill DMG echoes extra %
+            let playerVulnUntil = 0;
+            let playerVulnEcho = 0;
+            let enemyVulnUntil = 0;
+            let enemyVulnEcho = 0;
+
+            // DMG taken debuff (Smoke Bomb)
+            let playerDmgTakenUntil = 0;
+            let playerDmgTakenAdd = 0;
+            let enemyDmgTakenUntil = 0;
+            let enemyDmgTakenAdd = 0;
+
+            // Active buff/debuff tracking for stat restoration
+            const playerBuffs = [];
+            const enemyBuffs = [];
+
+            // Initialize active skill cooldowns (stagger by 0.5s each to avoid simultaneous fire)
+            player.activeSkills.forEach((sk, i) => { sk._cd = i * 0.5; });
+            enemy.activeSkills.forEach((sk, i) => { sk._cd = i * 0.5; });
+
             // General regen timing (ticks every 1s)
             let playerNextGeneralRegen = 1;
             let enemyNextGeneralRegen = 1;
@@ -1855,10 +2056,19 @@
                 }
             }
 
-            function dealDamage(target, amount) {
+            function dealDamage(target, amount, isTargetPlayer) {
+                // Immunity check
+                const immuneUntil = isTargetPlayer ? playerImmuneUntil : enemyImmuneUntil;
+                if (immuneUntil > time) return { total: 0, shielded: 0 };
+
+                // DMG taken debuff (Smoke Bomb)
+                const dmgTakenUntil = isTargetPlayer ? playerDmgTakenUntil : enemyDmgTakenUntil;
+                const dmgTakenAdd = isTargetPlayer ? playerDmgTakenAdd : enemyDmgTakenAdd;
+                if (dmgTakenUntil > time) amount *= (1 + dmgTakenAdd / 100);
+
                 const originalAmount = amount;
                 let shieldAbsorbed = 0;
-                
+
                 if (target.shield > 0) {
                     if (amount <= target.shield) {
                         target.shield -= amount;
@@ -1870,7 +2080,7 @@
                         target.shield = 0;
                     }
                 }
-                
+
                 target.hp = Math.max(0, target.hp - amount);
                 
                 // Return object with details for logging
@@ -1897,11 +2107,12 @@
             sampleHP();
 
             while (time < DURATION && player.hp > 0 && enemy.hp > 0) {
-                // Player attacks
+                // Player attacks (skip basic ATK if stunned/disarmed; counters still work)
                 if (time >= playerNextAttack) {
                     const interval = 1 / player.atkSpd;
                     playerNextAttack = time + interval;
 
+                  if (playerCCUntil <= time) {
                     const effectiveEvasion = Math.max(0, enemy.evasion - player.ignoreEvasion);
                     const evasionChance = Math.pow(effectiveEvasion / 100, 0.9) * 100;
 
@@ -1938,6 +2149,7 @@
                         enemy.evadeCount++;
                         log(`Player Basic ATK: EVADED`, 'damage');
                     }
+                  } // end CC check for player basic ATK
 
                     const effectiveCounter = Math.max(0, enemy.counter - player.ignoreCounter);
                     if (roll(effectiveCounter)) {
@@ -1950,7 +2162,7 @@
                         player.counterRES = savedPlayerCounterRES;
                         const counterCrit = roll(enemy.critRate - player.ignoreCrit);
                         if (counterCrit) counterDmg = applyCrit(counterDmg, enemy, player);
-                        const counterResult = dealDamage(player, counterDmg);
+                        const counterResult = dealDamage(player, counterDmg, true);
                         enemy.totalDamageDealt += counterResult.total;
                         enemy.dmgCounter += counterResult.total;
                         const csn = counterResult.shielded > 0 ? ` (${formatNumber(counterResult.shielded)} blocked)` : '';
@@ -1960,7 +2172,7 @@
                         // Sage class skill: +1% HP counter bonus (separate log)
                         if (enemyBladesReunionActive > time) {
                             const hpBonusDmg = calcHPDamage(enemy, player, enemy.hp, 1, false, pvpFactor);
-                            const hpResult = dealDamage(player, hpBonusDmg);
+                            const hpResult = dealDamage(player, hpBonusDmg, true);
                             enemy.totalDamageDealt += hpResult.total;
                             enemy.dmgSageClassSkillHP += hpResult.total;
                             log(`  ← Enemy Sage Class Skill HP: ${formatNumber(hpResult.total)} [1% Cur HP]`, 'damage');
@@ -1969,7 +2181,7 @@
                         // Punch Counter affix (separate log)
                         if (enemy.affixPunchCounter && roll(50)) {
                             const pcDmg = calcHPDamage(enemy, player, enemy.hp, enemy.affixPunchCounterHP, false, pvpFactor);
-                            const pcResult = dealDamage(player, pcDmg);
+                            const pcResult = dealDamage(player, pcDmg, true);
                             enemy.totalDamageDealt += pcResult.total;
                             enemy.dmgPunchCounter += pcResult.total;
                             enemy.punchCounterCount++;
@@ -1984,11 +2196,12 @@
                     }
                 }
 
-                // Enemy attacks
+                // Enemy attacks (skip basic ATK if stunned/disarmed; counters still work)
                 if (time >= enemyNextAttack) {
                     const interval = 1 / enemy.atkSpd;
                     enemyNextAttack = time + interval;
 
+                  if (enemyCCUntil <= time) {
                     const effectiveEvasion = Math.max(0, player.evasion - enemy.ignoreEvasion);
                     const evasionChance = Math.pow(effectiveEvasion / 100, 0.9) * 100;
 
@@ -1996,7 +2209,7 @@
                         let dmg = calcBasicATKDamage(enemy, player, pvpFactor);
                         const isCrit = roll(enemy.critRate - player.ignoreCrit);
                         if (isCrit) dmg = applyCrit(dmg, enemy, player);
-                        const result = dealDamage(player, dmg);
+                        const result = dealDamage(player, dmg, true);
                         enemy.totalDamageDealt += result.total;
                         enemy.dmgBasicATK += result.total;
                         const sn = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
@@ -2013,7 +2226,7 @@
                             let comboDmg = calcComboDamage(enemy, player, pvpFactor);
                             const comboCrit = roll(enemy.critRate - player.ignoreCrit);
                             if (comboCrit) comboDmg = applyCrit(comboDmg, enemy, player);
-                            const comboResult = dealDamage(player, comboDmg);
+                            const comboResult = dealDamage(player, comboDmg, true);
                             enemy.totalDamageDealt += comboResult.total;
                             enemy.dmgCombo += comboResult.total;
                             enemy.comboCount++;
@@ -2024,6 +2237,7 @@
                         player.evadeCount++;
                         log(`Enemy Basic ATK: EVADED`, 'damage');
                     }
+                  } // end CC check for enemy basic ATK
 
                     const effectiveCounter = Math.max(0, player.counter - enemy.ignoreCounter);
                     if (roll(effectiveCounter)) {
@@ -2073,7 +2287,7 @@
                 // Class skills
                 if (player.class === 'sage' && time >= playerClassSkillCD) {
                     playerClassSkillCD = time + playerClassSkillBase;
-                    player.skillCount++;
+                    player.classSkillCount++;
                     const buffDur = 8 * playerNoSpeedingMult;
                     playerBladesReunionActive = time + buffDur;
                     enemyCounterRESDebuff = time + buffDur;
@@ -2085,7 +2299,7 @@
                     }
                     const skillResult = dealDamage(enemy, skillDmg);
                     player.totalDamageDealt += skillResult.total;
-                    player.dmgSkill += skillResult.total;
+                    player.dmgClassSkill += skillResult.total;
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Player BLADES REUNION: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s]`, 'skill');
                     // Wind Tear: separate HP damage (no crit, no resistance)
@@ -2101,7 +2315,7 @@
 
                 if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
                     enemyClassSkillCD = time + enemyClassSkillBase;
-                    enemy.skillCount++;
+                    enemy.classSkillCount++;
                     const buffDur = 8 * enemyNoSpeedingMult;
                     enemyBladesReunionActive = time + buffDur;
                     playerCounterRESDebuff = time + buffDur;
@@ -2111,19 +2325,258 @@
                         const skillCritMult = Math.max(1.5, enemy.skillCritDMG / player.critRES);
                         skillDmg *= skillCritMult;
                     }
-                    const skillResult = dealDamage(player, skillDmg);
+                    const skillResult = dealDamage(player, skillDmg, true);
                     enemy.totalDamageDealt += skillResult.total;
-                    enemy.dmgSkill += skillResult.total;
+                    enemy.dmgClassSkill += skillResult.total;
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Enemy BLADES REUNION: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s]`, 'skill');
                     if (enemy.affixWindTear) {
                         const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
-                        const wtResult = dealDamage(player, wtDmg);
+                        const wtResult = dealDamage(player, wtDmg, true);
                         enemy.totalDamageDealt += wtResult.total;
                         enemy.dmgWindTear += wtResult.total;
                         enemy.windTearCount++;
                         log(`  → Enemy Wind Tear: ${formatNumber(wtResult.total)} [${enemy.affixWindTearHP}% Cur HP]`, 'damage');
                     }
+                }
+
+                // === ACTIVE SKILLS (5 slots per side) ===
+                function processActiveSkills(attacker, defender, skills, isDefenderPlayer, noSpeedMult) {
+                    for (const sk of skills) {
+                        // Check cooldown
+                        if (time < sk._cd) continue;
+                        sk._cd = time + Math.max(1, sk.cd * (1 - attacker.cdr / 100));
+                        attacker.activeSkillCount++;
+
+                        // --- Instant damage ---
+                        let dmgPct = sk.dmgPercent;
+                        // Crimson Moonfall stacking
+                        if (sk.stacking) {
+                            dmgPct *= (1 + sk._moonStacks * sk.stacking.bonusPercent / 100);
+                            if (sk._moonStacks < sk.stacking.maxStacks) sk._moonStacks++;
+                        }
+                        if (dmgPct > 0) {
+                            let sDmg = calcSkillDamage(attacker, defender, dmgPct, pvpFactor);
+                            const sCrit = roll(attacker.skillCrit);
+                            if (sCrit) {
+                                const m = Math.max(1.5, attacker.skillCritDMG / defender.critRES);
+                                sDmg *= m;
+                            }
+                            const sRes = dealDamage(defender, sDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += sRes.total;
+                            attacker.dmgActiveSkills += sRes.total;
+                            const sn = sRes.shielded > 0 ? ` (${formatNumber(sRes.shielded)} blocked)` : '';
+                            log(`${attacker === player ? 'Player' : 'Enemy'} ${sk.name}: ${formatNumber(sRes.total)}${sn}${sCrit ? ' CRIT!' : ''}`, 'skill');
+                        }
+
+                        // --- Wind Tear on active skill ---
+                        if (attacker.affixWindTear) {
+                            const wtDmg = calcHPDamage(attacker, defender, defender.hp, attacker.affixWindTearHP, false, pvpFactor);
+                            const wtRes = dealDamage(defender, wtDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += wtRes.total;
+                            attacker.dmgWindTear += wtRes.total;
+                            attacker.windTearCount++;
+                            log(`  → ${attacker === player ? 'Player' : 'Enemy'} Wind Tear: ${formatNumber(wtRes.total)} [${attacker.affixWindTearHP}% Cur HP]`, 'damage');
+                        }
+
+                        const who = attacker === player ? 'Player' : 'Enemy';
+
+                        // --- Execute (Grim Reaper) ---
+                        if (sk.execute && defender.hp > 0 && (defender.hp / defender.maxHP * 100) < sk.execute.threshold) {
+                            defender.hp = 0;
+                            log(`  → ${who} Grim Reaper: INSTANT KILL (<${sk.execute.threshold}% HP)`, 'crit');
+                        }
+
+                        // --- DoT (Boulder Impact, Thorn Thicket, Spider Weaver, Batty Trace) ---
+                        if (sk.dot) {
+                            sk._dotEnd = time + sk.dot.duration;
+                            sk._dotNext = time + sk.dot.interval;
+                            sk._dotTickPct = sk.dot.tickPercent;
+                        }
+
+                        // --- HP% DoT (Blade Pierce) ---
+                        if (sk.hpDot) {
+                            sk._hpDotEnd = time + sk.hpDot.duration;
+                            sk._hpDotNext = time + sk.hpDot.interval;
+                        }
+
+                        // --- HP Burst (Dragonic Resonance) ---
+                        if (sk.hpBurst) {
+                            const h = sk.hpBurst;
+                            const dmgResStacks = Math.floor(defender.dmgRES / h.per);
+                            const totalPct = h.basePercent + dmgResStacks * h.perDmgResPercent;
+                            const hpDmg = calcHPDamage(attacker, defender, defender.maxHP, totalPct, true, pvpFactor);
+                            const hpRes = dealDamage(defender, hpDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += hpRes.total;
+                            attacker.dmgHpDot += hpRes.total;
+                            log(`  → ${who} Dragonic HP: ${formatNumber(hpRes.total)} [${totalPct}% Max HP]`, 'damage');
+                        }
+
+                        // --- Clone (Clone Strike) ---
+                        if (sk.clone) {
+                            sk._cloneEnd = time + sk.clone.duration;
+                            sk._cloneNextAtk = time + 1 / 3; // clone ATK SPD ~3
+                            log(`  → ${who} Clone summoned (${sk.clone.duration}s)`, 'skill');
+                        }
+
+                        // --- Self Buff ---
+                        if (sk.selfBuff) {
+                            const b = sk.selfBuff;
+                            const dur = b.duration * noSpeedMult;
+                            const expires = time + dur;
+                            if (b.stat === 'basicATKMult' && b.addPercent) {
+                                attacker.basicATKMult += b.addPercent;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.basicATKMult -= b.addPercent; }});
+                            } else if (b.stat === 'atkSpd' && b.mult) {
+                                const added = attacker.atkSpd * (b.mult - 1);
+                                attacker.atkSpd *= b.mult;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.atkSpd /= b.mult; }});
+                            } else if (b.stat === 'atk' && b.mult) {
+                                attacker.atk *= b.mult;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.atk /= b.mult; }});
+                            } else if (b.stat === 'palDMG' && b.addPercent) {
+                                attacker.palDMG += b.addPercent;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.palDMG -= b.addPercent; }});
+                            } else if (b.stat === 'skillDMG' && b.addPercent) {
+                                attacker.skillDMG += b.addPercent;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.skillDMG -= b.addPercent; }});
+                            } else if (b.stat === 'basicATKRES' && b.addPercent) {
+                                attacker.basicATKRES += b.addPercent;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.basicATKRES -= b.addPercent; }});
+                            } else if (b.stat === 'critScaling') {
+                                const addedCR = b.critRateBonus;
+                                const addedCD = (attacker.critRate + addedCR) * b.critDmgPer1Pct;
+                                attacker.critRate += addedCR;
+                                attacker.critDMG += addedCD;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.critRate -= addedCR; attacker.critDMG -= addedCD; }});
+                            } else if (b.stat === 'skillCritScaling') {
+                                const addedSCR = b.skillCritBonus;
+                                const addedSCD = (attacker.skillCrit + addedSCR) * b.skillCritDmgPer1Pct;
+                                attacker.skillCrit += addedSCR;
+                                attacker.skillCritDMG += addedSCD;
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.skillCrit -= addedSCR; attacker.skillCritDMG -= addedSCD; }});
+                            }
+                            // palComboScaling and palCritScaling are pal-specific - skip for now (no pal sim)
+                        }
+
+                        // --- Self Buff 2 (Hundred Slashes ATK% of HP) ---
+                        if (sk.selfBuff2) {
+                            const b2 = sk.selfBuff2;
+                            const dur = b2.duration * noSpeedMult;
+                            const atkAdd = attacker.hp * (b2.hpPercent / 100);
+                            attacker.atk += atkAdd;
+                            (attacker === player ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { attacker.atk -= atkAdd; }});
+                        }
+
+                        // --- Enemy Debuff ---
+                        if (sk.enemyDebuff) {
+                            const d = sk.enemyDebuff;
+                            const dur = d.duration * noSpeedMult;
+                            if (d.stat === 'atkSpd' && d.mult) {
+                                defender.atkSpd *= d.mult;
+                                (isDefenderPlayer ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { defender.atkSpd /= d.mult; }});
+                            } else if (d.stat === 'atk' && d.mult) {
+                                defender.atk *= d.mult;
+                                (isDefenderPlayer ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { defender.atk /= d.mult; }});
+                            } else if (d.stat === 'dmgTaken' && d.addPercent) {
+                                if (isDefenderPlayer) { playerDmgTakenUntil = time + dur; playerDmgTakenAdd = d.addPercent; }
+                                else { enemyDmgTakenUntil = time + dur; enemyDmgTakenAdd = d.addPercent; }
+                            } else if (d.stat === 'vulnerability') {
+                                if (isDefenderPlayer) { playerVulnUntil = time + dur; playerVulnEcho = d.echoPct; }
+                                else { enemyVulnUntil = time + dur; enemyVulnEcho = d.echoPct; }
+                            }
+                        }
+
+                        // --- CC (Stun/Disarm) ---
+                        if (sk.cc) {
+                            const ccEnd = time + sk.cc.duration;
+                            if (isDefenderPlayer) { playerCCUntil = Math.max(playerCCUntil, ccEnd); }
+                            else { enemyCCUntil = Math.max(enemyCCUntil, ccEnd); }
+                            log(`  → ${who} ${sk.cc.type === 'stun' ? 'STUN' : 'DISARM'}: ${sk.cc.duration}s`, 'skill');
+                        }
+
+                        // --- Immunity (Blitz Assault) ---
+                        if (sk.immunity) {
+                            const immEnd = time + sk.immunity.duration;
+                            if (attacker === player) playerImmuneUntil = Math.max(playerImmuneUntil, immEnd);
+                            else enemyImmuneUntil = Math.max(enemyImmuneUntil, immEnd);
+                            log(`  → ${who} IMMUNE for ${sk.immunity.duration}s`, 'skill');
+                        }
+
+                        // --- Heal (Nature's Renewal: 30% over 5s = heal proc every 0.1s) ---
+                        if (sk.heal) {
+                            sk._healEnd = time + sk.heal.duration;
+                            sk._healNext = time + 0.1;
+                            sk._healPerTick = attacker.maxHP * (sk.heal.percent / 100) / (sk.heal.duration / 0.1);
+                        }
+
+                        // --- Shield (Shroom Shield) ---
+                        if (sk.shield) {
+                            const shieldAmt = attacker.maxHP * (sk.shield.percent / 100) * PVP_SHIELD_REDUCTION;
+                            attacker.shield = Math.max(attacker.shield, shieldAmt);
+                            const shieldExpire = time + sk.shield.duration;
+                            if (attacker === player) playerShieldExpires = Math.max(playerShieldExpires, shieldExpire);
+                            else enemyShieldExpires = Math.max(enemyShieldExpires, shieldExpire);
+                            log(`  → ${who} Shield: ${formatNumber(shieldAmt)} (${sk.shield.duration}s)`, 'skill');
+                        }
+                    }
+                }
+
+                // Process player active skills
+                processActiveSkills(player, enemy, player.activeSkills, false, playerNoSpeedingMult);
+                // Process enemy active skills
+                processActiveSkills(enemy, player, enemy.activeSkills, true, enemyNoSpeedingMult);
+
+                // === Tick DoTs, HP DoTs, Clones, Heals from active skills ===
+                function tickSkillEffects(attacker, defender, skills, isDefenderPlayer) {
+                    const who = attacker === player ? 'Player' : 'Enemy';
+                    for (const sk of skills) {
+                        // Tick DoT
+                        if (sk._dotEnd > time && sk._dotNext <= time) {
+                            sk._dotNext = time + (sk.dot ? sk.dot.interval : 1);
+                            let dotDmg = calcSkillDamage(attacker, defender, sk._dotTickPct, pvpFactor);
+                            const dotRes = dealDamage(defender, dotDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += dotRes.total;
+                            attacker.dmgDot += dotRes.total;
+                            log(`${who} ${sk.name} DoT: ${formatNumber(dotRes.total)}`, 'damage');
+                        }
+                        // Tick HP% DoT (Blade Pierce)
+                        if (sk.hpDot && sk._hpDotEnd > time && sk._hpDotNext <= time) {
+                            sk._hpDotNext = time + sk.hpDot.interval;
+                            const hpSrc = sk.hpDot.isMaxHP ? defender.maxHP : defender.hp;
+                            const hpDmg = calcHPDamage(attacker, defender, hpSrc, sk.hpDot.percent, sk.hpDot.isMaxHP, pvpFactor);
+                            const hpRes = dealDamage(defender, hpDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += hpRes.total;
+                            attacker.dmgHpDot += hpRes.total;
+                            log(`${who} ${sk.name} HP DoT: ${formatNumber(hpRes.total)} [${sk.hpDot.percent}% Max HP]`, 'damage');
+                        }
+                        // Tick Clone
+                        if (sk.clone && sk._cloneEnd > time && sk._cloneNextAtk <= time) {
+                            sk._cloneNextAtk = time + 1 / 3;
+                            let cloneDmg = calcSkillDamage(attacker, defender, sk.clone.dmgPercent, pvpFactor);
+                            const cloneRes = dealDamage(defender, cloneDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += cloneRes.total;
+                            attacker.dmgClone += cloneRes.total;
+                            log(`${who} Clone ATK: ${formatNumber(cloneRes.total)}`, 'damage');
+                        }
+                        // Tick Heal (Nature's Renewal)
+                        if (sk.heal && sk._healEnd > time && sk._healNext <= time) {
+                            sk._healNext = time + 0.1;
+                            const healed = heal(attacker, sk._healPerTick);
+                            if (healed > 0) log(`${who} ${sk.name} heal: ${formatNumber(healed)}`, 'heal');
+                        }
+                    }
+                }
+
+                tickSkillEffects(player, enemy, player.activeSkills, false);
+                tickSkillEffects(enemy, player, enemy.activeSkills, true);
+
+                // === Expire buffs/debuffs ===
+                for (let i = playerBuffs.length - 1; i >= 0; i--) {
+                    if (playerBuffs[i].expires <= time) { playerBuffs[i].undo(); playerBuffs.splice(i, 1); }
+                }
+                for (let i = enemyBuffs.length - 1; i >= 0; i--) {
+                    if (enemyBuffs[i].expires <= time) { enemyBuffs[i].undo(); enemyBuffs.splice(i, 1); }
                 }
 
                 // Sage passives
@@ -2180,7 +2633,7 @@
                     const isMax = (AVIANS[enemy.avian] || AVIANS.none).isMaxHP !== false;
                     const sourceHP = isMax ? enemy.maxHP : enemy.hp;
                     const avianDmg = calcHPDamage(enemy, player, sourceHP, enemy.avianHPPercent, isMax, pvpFactor);
-                    const avianResult = dealDamage(player, avianDmg);
+                    const avianResult = dealDamage(player, avianDmg, true);
                     enemy.totalDamageDealt += avianResult.total;
                     enemy.dmgAvian += avianResult.total;
                     enemy.avianCount++;
@@ -2202,7 +2655,7 @@
                 if (enemyAvianType === 'healcount' && enemy.avianHPPercent > 0 && enemy.healCount >= 16) {
                     enemy.healCount -= 16;
                     const avianDmg = calcHPDamage(enemy, player, enemy.hp, enemy.avianHPPercent, false, pvpFactor);
-                    const avianResult = dealDamage(player, avianDmg);
+                    const avianResult = dealDamage(player, avianDmg, true);
                     enemy.totalDamageDealt += avianResult.total;
                     enemy.dmgAvian += avianResult.total;
                     enemy.avianCount++;
@@ -2295,7 +2748,11 @@
                     ['Counter', stats.dmgCounter],
                     ['Sage Class Skill HP', stats.dmgSageClassSkillHP],
                     ['Punch Counter', stats.dmgPunchCounter],
-                    ['Skill (Blades Reunion)', stats.dmgSkill],
+                    ['Class Skill (Blades Reunion)', stats.dmgClassSkill],
+                    ['Active Skills', stats.dmgActiveSkills],
+                    ['Skill DoTs', stats.dmgDot],
+                    ['HP% DoTs', stats.dmgHpDot],
+                    ['Clone', stats.dmgClone],
                     ['Wind Tear', stats.dmgWindTear],
                     ['Avian', stats.dmgAvian]
                 ].filter(s => s[1] > 0);
@@ -2304,7 +2761,8 @@
                     ['Counters', stats.counterCount],
                     ['Combos', stats.comboCount],
                     ['Evades', stats.evadeCount],
-                    ['Skills', stats.skillCount],
+                    ['Class Skills', stats.classSkillCount],
+                    ['Active Skills', stats.activeSkillCount],
                     ['Avian Procs', stats.avianCount],
                     ['Punch Counters', stats.punchCounterCount],
                     ['Wind Tears', stats.windTearCount],
@@ -2479,6 +2937,15 @@
             config.AffixNoSpeeding = document.getElementById(prefix + 'AffixNoSpeeding').checked;
             config.AffixNoSpeedingReduce = document.getElementById(prefix + 'AffixNoSpeedingReduce').value;
 
+            // Active skills (5 slots)
+            config.Skills = [];
+            for (let i = 0; i < 5; i++) {
+                const sel = document.getElementById(prefix + 'Skill' + i);
+                const isCustom = document.getElementById(prefix + 'Skill' + i + 'Custom').checked;
+                const customDmg = document.getElementById(prefix + 'Skill' + i + 'Dmg').value;
+                config.Skills.push({ id: sel.value, custom: isCustom, dmg: customDmg });
+            }
+
             return config;
         }
 
@@ -2503,12 +2970,25 @@
 
         function applyConfig(prefix, config) {
             Object.keys(config).forEach(key => {
+                if (key === 'Skills') return; // handle separately
                 const el = document.getElementById(prefix + key);
                 if (el) {
                     if (el.type === 'checkbox') el.checked = config[key];
                     else el.value = config[key];
                 }
             });
+            // Apply skill slots
+            if (config.Skills && Array.isArray(config.Skills)) {
+                config.Skills.forEach((sk, i) => {
+                    const sel = document.getElementById(prefix + 'Skill' + i);
+                    const customCb = document.getElementById(prefix + 'Skill' + i + 'Custom');
+                    const dmgInput = document.getElementById(prefix + 'Skill' + i + 'Dmg');
+                    if (sel) sel.value = sk.id || '';
+                    if (customCb) customCb.checked = sk.custom || false;
+                    if (dmgInput) dmgInput.value = sk.dmg || '';
+                    onSkillSlotChange(prefix, i);
+                });
+            }
         }
 
         function resetFields(who) {
@@ -2550,6 +3030,14 @@
             document.getElementById(who + 'AffixTerminalStrikeChance').value = '8';
             document.getElementById(who + 'AffixNoSpeeding').checked = true;
             document.getElementById(who + 'AffixNoSpeedingReduce').value = '19';
+
+            // Reset active skill slots
+            for (let i = 0; i < 5; i++) {
+                document.getElementById(who + 'Skill' + i).value = '';
+                document.getElementById(who + 'Skill' + i + 'Custom').checked = false;
+                document.getElementById(who + 'Skill' + i + 'Dmg').value = '';
+                onSkillSlotChange(who, i);
+            }
         }
 
         // =====================================
@@ -3011,6 +3499,8 @@ TIPS:
 • Avoid cropping too tight
 • Stats flagged ❌ are likely misread - verify manually`);
         }
+        // Initialize skill slot UI
+        buildSkillSlots();
     </script>
 </body>
 </html>
