@@ -718,6 +718,7 @@
                 <button class="tab active" onclick="showTab('player')">Player</button>
                 <button class="tab" onclick="showTab('enemy')">Enemy</button>
                 <button class="tab" onclick="showTab('equipment')">Equipment</button>
+                <button class="tab" onclick="showTab('pals')">Pals</button>
                 <button class="tab" onclick="showTab('skills')">Skills</button>
             </div>
 
@@ -1270,23 +1271,6 @@
                     <div>
                         <div class="section-title">Player Equipment</div>
                         
-                        <div class="subsection-title">Pals</div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="playerPalWolf" checked>
-                            <label for="playerPalWolf">Moonlit Lonewolf</label>
-                            <span class="pal-effect">(Enemy Regen -10%)</span>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="playerPalPup">
-                            <label for="playerPalPup">Electric Pup</label>
-                            <span class="pal-effect">(Counter DMG +60%, heal 1% lost HP on counter)</span>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="playerPalHydro">
-                            <label for="playerPalHydro">Warlord Hydrosprite</label>
-                            <span class="pal-effect">(Skill CDR +25%)</span>
-                        </div>
-
                         <div class="subsection-title">Avian</div>
                         <div class="input-grid">
                             <div class="input-group">
@@ -1341,23 +1325,6 @@
                     <div>
                         <div class="section-title">Enemy Equipment</div>
                         
-                        <div class="subsection-title">Pals</div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enemyPalWolf" checked>
-                            <label for="enemyPalWolf">Moonlit Lonewolf</label>
-                            <span class="pal-effect">(Enemy Regen -10%)</span>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enemyPalPup">
-                            <label for="enemyPalPup">Electric Pup</label>
-                            <span class="pal-effect">(Counter DMG +60%, heal 1% lost HP on counter)</span>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="enemyPalHydro">
-                            <label for="enemyPalHydro">Warlord Hydrosprite</label>
-                            <span class="pal-effect">(Skill CDR +25%)</span>
-                        </div>
-
                         <div class="subsection-title">Avian</div>
                         <div class="input-grid">
                             <div class="input-group">
@@ -1402,6 +1369,111 @@
                                 <label><input type="checkbox" id="enemyAffixNoSpeeding" checked> No Speeding</label>
                                 <input type="number" id="enemyAffixNoSpeedingReduce" value="19" step="1" min="0" title="% reduction to enemy active skill duration">
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pals Tab -->
+            <div id="tab-pals" class="tab-content">
+                <div class="info-box info">
+                    <strong>Note:</strong> Select any number of pals. Raw stat pals (ATK%, HP%, DEF%, etc.) are already reflected in your stats — only pals with unique combat mechanics are listed here.
+                </div>
+                <div class="two-column">
+                    <div>
+                        <div class="section-title">Player Pals</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalBDuck">
+                            <label for="playerPalBDuck">B.Duck</label>
+                            <span class="pal-effect">(Extends all shield durations by 1.5s)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalPuppyFervor">
+                            <label for="playerPalPuppyFervor">Puppy Fervor</label>
+                            <span class="pal-effect">(+20% shield effectiveness)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalFloralPanda">
+                            <label for="playerPalFloralPanda">Floral Panda</label>
+                            <span class="pal-effect">(Base Regen +0.1%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalAlpacaBell">
+                            <label for="playerPalAlpacaBell">Alpaca Bell</label>
+                            <span class="pal-effect">(Enemy ATK -6%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalMellowCloud">
+                            <label for="playerPalMellowCloud">Mellow Cloud</label>
+                            <span class="pal-effect">(Enemy +10% ATK SPD, -15% Basic/Combo/Counter DMG)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalWolf" checked>
+                            <label for="playerPalWolf">Moonlit Lonewolf</label>
+                            <span class="pal-effect">(Enemy HP Regen -10%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalTreasureDragon">
+                            <label for="playerPalTreasureDragon">Treasure Dragon</label>
+                            <span class="pal-effect">(BasicATK CritDMG +50%, Skill Crit +20%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalPup">
+                            <label for="playerPalPup">Electric Pup</label>
+                            <span class="pal-effect">(Counter DMG +60%, heal 1% lost HP on counter)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerPalHydro">
+                            <label for="playerPalHydro">Warlord Hydrosprite</label>
+                            <span class="pal-effect">(Skill CDR +25%)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-title">Enemy Pals</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalBDuck">
+                            <label for="enemyPalBDuck">B.Duck</label>
+                            <span class="pal-effect">(Extends all shield durations by 1.5s)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalPuppyFervor">
+                            <label for="enemyPalPuppyFervor">Puppy Fervor</label>
+                            <span class="pal-effect">(+20% shield effectiveness)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalFloralPanda">
+                            <label for="enemyPalFloralPanda">Floral Panda</label>
+                            <span class="pal-effect">(Base Regen +0.1%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalAlpacaBell">
+                            <label for="enemyPalAlpacaBell">Alpaca Bell</label>
+                            <span class="pal-effect">(Enemy ATK -6%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalMellowCloud">
+                            <label for="enemyPalMellowCloud">Mellow Cloud</label>
+                            <span class="pal-effect">(Enemy +10% ATK SPD, -15% Basic/Combo/Counter DMG)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalWolf" checked>
+                            <label for="enemyPalWolf">Moonlit Lonewolf</label>
+                            <span class="pal-effect">(Enemy HP Regen -10%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalTreasureDragon">
+                            <label for="enemyPalTreasureDragon">Treasure Dragon</label>
+                            <span class="pal-effect">(BasicATK CritDMG +50%, Skill Crit +20%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalPup">
+                            <label for="enemyPalPup">Electric Pup</label>
+                            <span class="pal-effect">(Counter DMG +60%, heal 1% lost HP on counter)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyPalHydro">
+                            <label for="enemyPalHydro">Warlord Hydrosprite</label>
+                            <span class="pal-effect">(Skill CDR +25%)</span>
                         </div>
                     </div>
                 </div>
@@ -1798,6 +1870,12 @@
                 hasMoonlitLonewolf: document.getElementById(prefix + 'PalWolf').checked,
                 hasElectricPup: document.getElementById(prefix + 'PalPup').checked,
                 hasHydrosprite: document.getElementById(prefix + 'PalHydro').checked,
+                hasBDuck: document.getElementById(prefix + 'PalBDuck').checked,
+                hasPuppyFervor: document.getElementById(prefix + 'PalPuppyFervor').checked,
+                hasFloralPanda: document.getElementById(prefix + 'PalFloralPanda').checked,
+                hasAlpacaBell: document.getElementById(prefix + 'PalAlpacaBell').checked,
+                hasMellowCloud: document.getElementById(prefix + 'PalMellowCloud').checked,
+                hasTreasureDragon: document.getElementById(prefix + 'PalTreasureDragon').checked,
 
                 avian: document.getElementById(prefix + 'Avian').value,
                 avianHPPercent: parseFloat(document.getElementById(prefix + 'AvianHPPercent').value),
@@ -1874,6 +1952,7 @@
 
             if (stats.hasElectricPup) stats.counterMult += 60;
             if (stats.hasHydrosprite) stats.cdr += 25;
+            if (stats.hasTreasureDragon) { stats.critDMG += 50; stats.skillCrit += 20; }
 
             return stats;
         }
@@ -1956,8 +2035,31 @@
             const player = gatherStats('player');
             const enemy = gatherStats('enemy');
 
-            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen * 0.9); // -10% regen
-            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen * 0.9); // -10% regen
+            // --- Pal cross-effects (affect opponent) ---
+            if (player.hasMoonlitLonewolf) enemy.regen = Math.max(0, enemy.regen * 0.9);
+            if (enemy.hasMoonlitLonewolf) player.regen = Math.max(0, player.regen * 0.9);
+            // Floral Panda: +0.1% base regen (self)
+            if (player.hasFloralPanda) player.regen += 0.1;
+            if (enemy.hasFloralPanda) enemy.regen += 0.1;
+            // Alpaca Bell: enemy ATK -6%
+            if (player.hasAlpacaBell) enemy.atk *= 0.94;
+            if (enemy.hasAlpacaBell) player.atk *= 0.94;
+            // Mellow Cloud: enemy +10% ATK SPD but -15% Basic/Combo/Counter DMG
+            if (player.hasMellowCloud) {
+                enemy.atkSpd *= 1.1;
+                enemy.basicATKMult *= 0.85;
+                enemy.comboMult *= 0.85;
+                enemy.counterMult *= 0.85;
+            }
+            if (enemy.hasMellowCloud) {
+                player.atkSpd *= 1.1;
+                player.basicATKMult *= 0.85;
+                player.comboMult *= 0.85;
+                player.counterMult *= 0.85;
+            }
+            // Update baseATK after Alpaca Bell modification
+            player.baseATK = player.atk;
+            enemy.baseATK = enemy.atk;
 
             const avgLevel = Math.floor((player.level + enemy.level) / 2);
             const pvpFactor = PVP_FACTORS[avgLevel] || 471.70;
@@ -2512,12 +2614,14 @@
 
                         // --- Shield (Shroom Shield) ---
                         if (sk.shield) {
-                            const shieldAmt = attacker.maxHP * (sk.shield.percent / 100) * PVP_SHIELD_REDUCTION;
+                            let shieldAmt = attacker.maxHP * (sk.shield.percent / 100) * PVP_SHIELD_REDUCTION;
+                            if (attacker.hasPuppyFervor) shieldAmt *= 1.2;
                             attacker.shield = Math.max(attacker.shield, shieldAmt);
-                            const shieldExpire = time + sk.shield.duration;
+                            const shieldDur = sk.shield.duration + (attacker.hasBDuck ? 1.5 : 0);
+                            const shieldExpire = time + shieldDur;
                             if (attacker === player) playerShieldExpires = Math.max(playerShieldExpires, shieldExpire);
                             else enemyShieldExpires = Math.max(enemyShieldExpires, shieldExpire);
-                            log(`  → ${who} Shield: ${formatNumber(shieldAmt)} (${sk.shield.duration}s)`, 'skill');
+                            log(`  → ${who} Shield: ${formatNumber(shieldAmt)} (${shieldDur}s)`, 'skill');
                         }
                     }
                 }
@@ -2594,16 +2698,22 @@
 
                 if (player.class === 'sage' && time >= playerNextShield) {
                     playerNextShield = time + 10;
-                    player.shield = player.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
-                    playerShieldExpires = time + 5; // Shield lasts 5 seconds
-                    log(`[Shield] Player Sage Shield: ${formatNumber(player.shield)} (5s)`, 'skill');
+                    let pShield = player.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
+                    if (player.hasPuppyFervor) pShield *= 1.2;
+                    player.shield = pShield;
+                    const pShieldDur = 5 + (player.hasBDuck ? 1.5 : 0);
+                    playerShieldExpires = time + pShieldDur;
+                    log(`[Shield] Player Sage Shield: ${formatNumber(pShield)} (${pShieldDur}s)`, 'skill');
                 }
 
                 if (enemy.class === 'sage' && time >= enemyNextShield) {
                     enemyNextShield = time + 10;
-                    enemy.shield = enemy.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
-                    enemyShieldExpires = time + 5; // Shield lasts 5 seconds
-                    log(`[Shield] Enemy Sage Shield: ${formatNumber(enemy.shield)} (5s)`, 'skill');
+                    let eShield = enemy.maxHP * 0.08 * PVP_SHIELD_REDUCTION;
+                    if (enemy.hasPuppyFervor) eShield *= 1.2;
+                    enemy.shield = eShield;
+                    const eShieldDur = 5 + (enemy.hasBDuck ? 1.5 : 0);
+                    enemyShieldExpires = time + eShieldDur;
+                    log(`[Shield] Enemy Sage Shield: ${formatNumber(eShield)} (${eShieldDur}s)`, 'skill');
                 }
 
                 // Expire shields after duration
@@ -2921,6 +3031,12 @@
             config.PalWolf = document.getElementById(prefix + 'PalWolf').checked;
             config.PalPup = document.getElementById(prefix + 'PalPup').checked;
             config.PalHydro = document.getElementById(prefix + 'PalHydro').checked;
+            config.PalBDuck = document.getElementById(prefix + 'PalBDuck').checked;
+            config.PalPuppyFervor = document.getElementById(prefix + 'PalPuppyFervor').checked;
+            config.PalFloralPanda = document.getElementById(prefix + 'PalFloralPanda').checked;
+            config.PalAlpacaBell = document.getElementById(prefix + 'PalAlpacaBell').checked;
+            config.PalMellowCloud = document.getElementById(prefix + 'PalMellowCloud').checked;
+            config.PalTreasureDragon = document.getElementById(prefix + 'PalTreasureDragon').checked;
             config.Avian = document.getElementById(prefix + 'Avian').value;
             config.AvianHPPercent = document.getElementById(prefix + 'AvianHPPercent').value;
             config.AvianInterval = document.getElementById(prefix + 'AvianInterval').value;
@@ -3015,6 +3131,12 @@
             document.getElementById(who + 'PalWolf').checked = true;
             document.getElementById(who + 'PalPup').checked = false;
             document.getElementById(who + 'PalHydro').checked = false;
+            document.getElementById(who + 'PalBDuck').checked = false;
+            document.getElementById(who + 'PalPuppyFervor').checked = false;
+            document.getElementById(who + 'PalFloralPanda').checked = false;
+            document.getElementById(who + 'PalAlpacaBell').checked = false;
+            document.getElementById(who + 'PalMellowCloud').checked = false;
+            document.getElementById(who + 'PalTreasureDragon').checked = false;
             document.getElementById(who + 'Avian').value = 'deity';
             document.getElementById(who + 'AvianHPPercent').value = '4';
             document.getElementById(who + 'AvianInterval').value = '16';
