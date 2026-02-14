@@ -719,6 +719,7 @@
                 <button class="tab" onclick="showTab('enemy')">Enemy</button>
                 <button class="tab" onclick="showTab('equipment')">Equipment</button>
                 <button class="tab" onclick="showTab('pals')">Pals</button>
+                <button class="tab" onclick="showTab('talents')">Talents</button>
                 <button class="tab" onclick="showTab('skills')">Skills</button>
             </div>
 
@@ -1020,20 +1021,12 @@
                     </div>
                 </div>
 
-                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('playerSustain')">Sustain & CDR</div>
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('playerSustain')">Sustain</div>
                 <div id="playerSustain" class="collapse-content collapsed">
                     <div class="input-grid input-grid-4">
                         <div class="input-group">
                             <label for="playerRegen">Regeneration %/sec</label>
                             <input type="number" id="playerRegen" value="9.5" step="0.1">
-                        </div>
-                        <div class="input-group">
-                            <label for="playerControlRES">Control Duration RES %</label>
-                            <input type="number" id="playerControlRES" value="0" step="1" max="100">
-                        </div>
-                        <div class="input-group">
-                            <label for="playerCDR">Cooldown Reduction %</label>
-                            <input type="number" id="playerCDR" value="20" step="1">
                         </div>
                     </div>
                 </div>
@@ -1237,20 +1230,12 @@
                     </div>
                 </div>
 
-                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('enemySustain')">Sustain & CDR</div>
+                <div class="subsection-title collapsible collapsed" onclick="toggleCollapse('enemySustain')">Sustain</div>
                 <div id="enemySustain" class="collapse-content collapsed">
                     <div class="input-grid input-grid-4">
                         <div class="input-group">
                             <label for="enemyRegen">Regeneration %/sec</label>
                             <input type="number" id="enemyRegen" value="9.5" step="0.1">
-                        </div>
-                        <div class="input-group">
-                            <label for="enemyControlRES">Control Duration RES %</label>
-                            <input type="number" id="enemyControlRES" value="0" step="1" max="100">
-                        </div>
-                        <div class="input-group">
-                            <label for="enemyCDR">Cooldown Reduction %</label>
-                            <input type="number" id="enemyCDR" value="20" step="1">
                         </div>
                     </div>
                 </div>
@@ -1474,6 +1459,129 @@
                             <input type="checkbox" id="enemyPalHydro">
                             <label for="enemyPalHydro">Warlord Hydrosprite</label>
                             <span class="pal-effect">(Skill CDR +25%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Talents Tab -->
+            <div id="tab-talents" class="tab-content">
+                <div class="info-box info">
+                    <strong>Note:</strong> Final Talents are on/off toggles (max 4 in-game). Leveled talents use numeric inputs matching your in-game values.
+                </div>
+                <div class="two-column">
+                    <div>
+                        <div class="section-title">Player Talents</div>
+                        <strong style="display:block; margin: 8px 0 4px;">Final Talents</strong>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerTalentAscension">
+                            <label for="playerTalentAscension">Ascension</label>
+                            <span class="pal-effect">(15s: ATK SPD +15%, 30s: Crit Rate +20%, 45s: ATK +20%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerTalentRampage">
+                            <label for="playerTalentRampage">Rampage</label>
+                            <span class="pal-effect">(HP &lt;20%: ATK +10%, ATK SPD +10%, Crit DMG +10%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerTalentEagerMomentum">
+                            <label for="playerTalentEagerMomentum">Eager Momentum</label>
+                            <span class="pal-effect">(Every 3s: Crit DMG +5%, up to 25%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerTalentGaleBarrage">
+                            <label for="playerTalentGaleBarrage">Gale Barrage</label>
+                            <span class="pal-effect">(Every 2s: Combo DMG +5%, up to 50%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerTalentTemporalCompression">
+                            <label for="playerTalentTemporalCompression">Temporal Compression</label>
+                            <span class="pal-effect">(Each skill cast: ATK +2%, up to 30%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerTalentEndlessOutburst">
+                            <label for="playerTalentEndlessOutburst">Endless Outburst</label>
+                            <span class="pal-effect">(First HP &lt;20%: Energy Regen +100% for 5s)</span>
+                        </div>
+                        <strong style="display:block; margin: 12px 0 4px;">Leveled Talents</strong>
+                        <div class="input-grid input-grid-4">
+                            <div class="input-group">
+                                <label for="playerTalentWound">Wound %</label>
+                                <input type="number" id="playerTalentWound" value="0" step="0.5" min="0" max="20">
+                            </div>
+                            <div class="input-group">
+                                <label for="playerTalentEnergyRegen">Energy Regen %</label>
+                                <input type="number" id="playerTalentEnergyRegen" value="0" step="0.5" min="0" max="20">
+                            </div>
+                            <div class="input-group">
+                                <label for="playerTalentCounterRejuv">Counter Rejuv %HP</label>
+                                <input type="number" id="playerTalentCounterRejuv" value="0" step="0.05" min="0" max="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="playerTalentComboHealing">Combo Heal %HP</label>
+                                <input type="number" id="playerTalentComboHealing" value="0" step="0.05" min="0" max="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="playerTalentSkillRegen">Skill Regen %HP</label>
+                                <input type="number" id="playerTalentSkillRegen" value="0" step="0.04" min="0" max="0.88">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-title">Enemy Talents</div>
+                        <strong style="display:block; margin: 8px 0 4px;">Final Talents</strong>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyTalentAscension">
+                            <label for="enemyTalentAscension">Ascension</label>
+                            <span class="pal-effect">(15s: ATK SPD +15%, 30s: Crit Rate +20%, 45s: ATK +20%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyTalentRampage">
+                            <label for="enemyTalentRampage">Rampage</label>
+                            <span class="pal-effect">(HP &lt;20%: ATK +10%, ATK SPD +10%, Crit DMG +10%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyTalentEagerMomentum">
+                            <label for="enemyTalentEagerMomentum">Eager Momentum</label>
+                            <span class="pal-effect">(Every 3s: Crit DMG +5%, up to 25%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyTalentGaleBarrage">
+                            <label for="enemyTalentGaleBarrage">Gale Barrage</label>
+                            <span class="pal-effect">(Every 2s: Combo DMG +5%, up to 50%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyTalentTemporalCompression">
+                            <label for="enemyTalentTemporalCompression">Temporal Compression</label>
+                            <span class="pal-effect">(Each skill cast: ATK +2%, up to 30%)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyTalentEndlessOutburst">
+                            <label for="enemyTalentEndlessOutburst">Endless Outburst</label>
+                            <span class="pal-effect">(First HP &lt;20%: Energy Regen +100% for 5s)</span>
+                        </div>
+                        <strong style="display:block; margin: 12px 0 4px;">Leveled Talents</strong>
+                        <div class="input-grid input-grid-4">
+                            <div class="input-group">
+                                <label for="enemyTalentWound">Wound %</label>
+                                <input type="number" id="enemyTalentWound" value="0" step="0.5" min="0" max="20">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyTalentEnergyRegen">Energy Regen %</label>
+                                <input type="number" id="enemyTalentEnergyRegen" value="0" step="0.5" min="0" max="20">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyTalentCounterRejuv">Counter Rejuv %HP</label>
+                                <input type="number" id="enemyTalentCounterRejuv" value="0" step="0.05" min="0" max="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyTalentComboHealing">Combo Heal %HP</label>
+                                <input type="number" id="enemyTalentComboHealing" value="0" step="0.05" min="0" max="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyTalentSkillRegen">Skill Regen %HP</label>
+                                <input type="number" id="enemyTalentSkillRegen" value="0" step="0.04" min="0" max="0.88">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1864,8 +1972,22 @@
                 ignoreRegen: parseFloat(document.getElementById(prefix + 'IgnoreRegen').value),
 
                 regen: parseFloat(document.getElementById(prefix + 'Regen').value),
-                controlRES: clamp(parseFloat(document.getElementById(prefix + 'ControlRES').value), 0, 100),
-                cdr: parseFloat(document.getElementById(prefix + 'CDR').value),
+                cdr: parseFloat(document.getElementById(prefix + 'TalentEnergyRegen').value) || 0,
+
+                // Talents - Final (checkboxes)
+                talentAscension: document.getElementById(prefix + 'TalentAscension').checked,
+                talentRampage: document.getElementById(prefix + 'TalentRampage').checked,
+                talentEagerMomentum: document.getElementById(prefix + 'TalentEagerMomentum').checked,
+                talentGaleBarrage: document.getElementById(prefix + 'TalentGaleBarrage').checked,
+                talentTemporalCompression: document.getElementById(prefix + 'TalentTemporalCompression').checked,
+                talentEndlessOutburst: document.getElementById(prefix + 'TalentEndlessOutburst').checked,
+                // Talents - Leveled (numeric)
+                talentWound: parseFloat(document.getElementById(prefix + 'TalentWound').value) || 0,
+                talentCounterRejuv: parseFloat(document.getElementById(prefix + 'TalentCounterRejuv').value) || 0,
+                talentComboHealing: parseFloat(document.getElementById(prefix + 'TalentComboHealing').value) || 0,
+                talentSkillRegen: parseFloat(document.getElementById(prefix + 'TalentSkillRegen').value) || 0,
+                // Battle loop tracking
+                temporalStacks: 0,
 
                 hasMoonlitLonewolf: document.getElementById(prefix + 'PalWolf').checked,
                 hasElectricPup: document.getElementById(prefix + 'PalPup').checked,
@@ -1900,6 +2022,7 @@
                 rageSlashStacks: 0,
                 baseATK: 0,
                 woundedUntil: 0,
+                woundTalentReduction: 0,
 
                 // Active skills (5 slots)
                 activeSkills: [],
@@ -2057,6 +2180,16 @@
                 player.comboMult *= 0.85;
                 player.counterMult *= 0.85;
             }
+            // Wound talent: reduce enemy regen and healing
+            if (player.talentWound > 0) {
+                enemy.regen *= (1 - player.talentWound / 100);
+                enemy.woundTalentReduction = player.talentWound;
+            }
+            if (enemy.talentWound > 0) {
+                player.regen *= (1 - enemy.talentWound / 100);
+                player.woundTalentReduction = enemy.talentWound;
+            }
+
             // Update baseATK after Alpaca Bell modification
             player.baseATK = player.atk;
             enemy.baseATK = enemy.atk;
@@ -2074,8 +2207,19 @@
 
             let playerClassSkillCD = 0;
             let enemyClassSkillCD = 0;
-            const playerClassSkillBase = Math.max(1, 15 * (1 - player.cdr / 100));
-            const enemyClassSkillBase = Math.max(1, 15 * (1 - enemy.cdr / 100));
+
+            // Talent state variables
+            let playerAsc15 = false, playerAsc30 = false, playerAsc45 = false;
+            let enemyAsc15 = false, enemyAsc30 = false, enemyAsc45 = false;
+            let playerRampageTriggered = false, enemyRampageTriggered = false;
+            let playerEagerStacks = 0, enemyEagerStacks = 0;
+            let playerEagerNext = player.talentEagerMomentum ? 3 : Infinity;
+            let enemyEagerNext = enemy.talentEagerMomentum ? 3 : Infinity;
+            let playerGaleStacks = 0, enemyGaleStacks = 0;
+            let playerGaleNext = player.talentGaleBarrage ? 2 : Infinity;
+            let enemyGaleNext = enemy.talentGaleBarrage ? 2 : Infinity;
+            let playerOutburstTriggered = false, enemyOutburstTriggered = false;
+            let playerOutburstUntil = 0, enemyOutburstUntil = 0;
 
             let playerNextRegen = 5;
             let playerNextShield = 10;
@@ -2195,6 +2339,10 @@
 
             function heal(target, amount) {
                 amount *= PVP_HEALING_REDUCTION;
+                // Wound talent: permanent healing reduction
+                if (target.woundTalentReduction > 0) {
+                    amount *= (1 - target.woundTalentReduction / 100);
+                }
                 // Terminal Strike wound: -50% regen/healing
                 if (target.woundedUntil > time) {
                     amount *= 0.5;
@@ -2209,6 +2357,62 @@
             sampleHP();
 
             while (time < DURATION && player.hp > 0 && enemy.hp > 0) {
+
+                // === TALENT TICKS ===
+                // Ascension: timed buffs at 15s, 30s, 45s
+                if (player.talentAscension) {
+                    if (!playerAsc15 && time >= 15) { playerAsc15 = true; player.atkSpd *= 1.15; log('[Talent] Player Ascension: ATK SPD +15%', 'buff'); }
+                    if (!playerAsc30 && time >= 30) { playerAsc30 = true; player.critRate += 20; log('[Talent] Player Ascension: Crit Rate +20%', 'buff'); }
+                    if (!playerAsc45 && time >= 45) { playerAsc45 = true; player.atk *= 1.20; log('[Talent] Player Ascension: ATK +20%', 'buff'); }
+                }
+                if (enemy.talentAscension) {
+                    if (!enemyAsc15 && time >= 15) { enemyAsc15 = true; enemy.atkSpd *= 1.15; log('[Talent] Enemy Ascension: ATK SPD +15%', 'buff'); }
+                    if (!enemyAsc30 && time >= 30) { enemyAsc30 = true; enemy.critRate += 20; log('[Talent] Enemy Ascension: Crit Rate +20%', 'buff'); }
+                    if (!enemyAsc45 && time >= 45) { enemyAsc45 = true; enemy.atk *= 1.20; log('[Talent] Enemy Ascension: ATK +20%', 'buff'); }
+                }
+                // Rampage: HP < 20% triggers ATK +10%, ATK SPD +10%, Crit DMG +10%
+                if (player.talentRampage && !playerRampageTriggered && player.hp / player.maxHP < 0.20) {
+                    playerRampageTriggered = true;
+                    player.atk *= 1.10; player.atkSpd *= 1.10; player.critDMG += 10;
+                    log('[Talent] Player Rampage: ATK +10%, ATK SPD +10%, Crit DMG +10%', 'buff');
+                }
+                if (enemy.talentRampage && !enemyRampageTriggered && enemy.hp / enemy.maxHP < 0.20) {
+                    enemyRampageTriggered = true;
+                    enemy.atk *= 1.10; enemy.atkSpd *= 1.10; enemy.critDMG += 10;
+                    log('[Talent] Enemy Rampage: ATK +10%, ATK SPD +10%, Crit DMG +10%', 'buff');
+                }
+                // Eager Momentum: every 3s, Crit DMG +5% (up to 25%)
+                if (time >= playerEagerNext && playerEagerStacks < 5) {
+                    playerEagerStacks++; player.critDMG += 5;
+                    playerEagerNext = time + 3;
+                    log(`[Talent] Player Eager Momentum: Crit DMG +5% (${playerEagerStacks * 5}% total)`, 'buff');
+                }
+                if (time >= enemyEagerNext && enemyEagerStacks < 5) {
+                    enemyEagerStacks++; enemy.critDMG += 5;
+                    enemyEagerNext = time + 3;
+                    log(`[Talent] Enemy Eager Momentum: Crit DMG +5% (${enemyEagerStacks * 5}% total)`, 'buff');
+                }
+                // Gale Barrage: every 2s, Combo DMG +5% (up to 50%)
+                if (time >= playerGaleNext && playerGaleStacks < 10) {
+                    playerGaleStacks++; player.comboMult += 5;
+                    playerGaleNext = time + 2;
+                    log(`[Talent] Player Gale Barrage: Combo DMG +5% (${playerGaleStacks * 5}% total)`, 'buff');
+                }
+                if (time >= enemyGaleNext && enemyGaleStacks < 10) {
+                    enemyGaleStacks++; enemy.comboMult += 5;
+                    enemyGaleNext = time + 2;
+                    log(`[Talent] Enemy Gale Barrage: Combo DMG +5% (${enemyGaleStacks * 5}% total)`, 'buff');
+                }
+                // Endless Outburst: first time HP < 20%, Energy Regen +100% for 5s
+                if (player.talentEndlessOutburst && !playerOutburstTriggered && player.hp / player.maxHP < 0.20) {
+                    playerOutburstTriggered = true; playerOutburstUntil = time + 5;
+                    log('[Talent] Player Endless Outburst: Energy Regen +100% for 5s', 'buff');
+                }
+                if (enemy.talentEndlessOutburst && !enemyOutburstTriggered && enemy.hp / enemy.maxHP < 0.20) {
+                    enemyOutburstTriggered = true; enemyOutburstUntil = time + 5;
+                    log('[Talent] Enemy Endless Outburst: Energy Regen +100% for 5s', 'buff');
+                }
+
                 // Player attacks (skip basic ATK if stunned/disarmed; counters still work)
                 if (time >= playerNextAttack) {
                     const interval = 1 / player.atkSpd;
@@ -2246,6 +2450,11 @@
                             player.comboCount++;
                             const csn = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
                             log(`  → Combo: ${formatNumber(comboResult.total)}${csn}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                            // Combo Healing talent
+                            if (player.talentComboHealing > 0 && player.comboCount % 5 === 0) {
+                                const healed = heal(player, player.maxHP * (player.talentComboHealing / 100));
+                                if (healed > 0) log(`  → Player Combo Heal: ${formatNumber(healed)}`, 'heal');
+                            }
                         }
                     } else {
                         enemy.evadeCount++;
@@ -2295,6 +2504,12 @@
                             const healed = heal(enemy, lostHP * 0.01);
                             if (healed > 0) log(`  ← Enemy Pup heal: ${formatNumber(healed)}`, 'heal');
                         }
+
+                        // Counter Rejuvenation talent
+                        if (enemy.talentCounterRejuv > 0 && enemy.counterCount % 5 === 0) {
+                            const healed = heal(enemy, enemy.maxHP * (enemy.talentCounterRejuv / 100));
+                            if (healed > 0) log(`  ← Enemy Counter Rejuv: ${formatNumber(healed)}`, 'heal');
+                        }
                     }
                 }
 
@@ -2334,6 +2549,11 @@
                             enemy.comboCount++;
                             const csn = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
                             log(`  → Combo: ${formatNumber(comboResult.total)}${csn}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                            // Combo Healing talent
+                            if (enemy.talentComboHealing > 0 && enemy.comboCount % 5 === 0) {
+                                const healed = heal(enemy, enemy.maxHP * (enemy.talentComboHealing / 100));
+                                if (healed > 0) log(`  → Enemy Combo Heal: ${formatNumber(healed)}`, 'heal');
+                            }
                         }
                     } else {
                         player.evadeCount++;
@@ -2383,12 +2603,19 @@
                             const healed = heal(player, lostHP * 0.01);
                             if (healed > 0) log(`  ← Player Pup heal: ${formatNumber(healed)}`, 'heal');
                         }
+
+                        // Counter Rejuvenation talent
+                        if (player.talentCounterRejuv > 0 && player.counterCount % 5 === 0) {
+                            const healed = heal(player, player.maxHP * (player.talentCounterRejuv / 100));
+                            if (healed > 0) log(`  ← Player Counter Rejuv: ${formatNumber(healed)}`, 'heal');
+                        }
                     }
                 }
 
                 // Class skills
                 if (player.class === 'sage' && time >= playerClassSkillCD) {
-                    playerClassSkillCD = time + playerClassSkillBase;
+                    const pCdMult = (1 - player.cdr / 100) * (playerOutburstUntil > time ? 0.5 : 1);
+                    playerClassSkillCD = time + Math.max(1, 15 * pCdMult);
                     player.classSkillCount++;
                     const buffDur = 8 * playerNoSpeedingMult;
                     playerBladesReunionActive = time + buffDur;
@@ -2416,7 +2643,8 @@
                 }
 
                 if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
-                    enemyClassSkillCD = time + enemyClassSkillBase;
+                    const eCdMult = (1 - enemy.cdr / 100) * (enemyOutburstUntil > time ? 0.5 : 1);
+                    enemyClassSkillCD = time + Math.max(1, 15 * eCdMult);
                     enemy.classSkillCount++;
                     const buffDur = 8 * enemyNoSpeedingMult;
                     enemyBladesReunionActive = time + buffDur;
@@ -2447,7 +2675,8 @@
                     for (const sk of skills) {
                         // Check cooldown
                         if (time < sk._cd) continue;
-                        sk._cd = time + Math.max(1, sk.cd * (1 - attacker.cdr / 100));
+                        const outburstMult = (attacker === player ? playerOutburstUntil : enemyOutburstUntil) > time ? 0.5 : 1;
+                        sk._cd = time + Math.max(1, sk.cd * (1 - attacker.cdr / 100) * outburstMult);
                         attacker.activeSkillCount++;
 
                         // --- Instant damage ---
@@ -2482,6 +2711,19 @@
                         }
 
                         const who = attacker === player ? 'Player' : 'Enemy';
+
+                        // --- Temporal Compression: ATK +2% per skill cast (max 30%) ---
+                        if (attacker.talentTemporalCompression && attacker.temporalStacks < 15) {
+                            attacker.temporalStacks++;
+                            attacker.atk = attacker.baseATK * (1 + attacker.temporalStacks * 0.02);
+                            log(`  → ${who} Temporal Compression: ATK +2% (${attacker.temporalStacks * 2}% total)`, 'buff');
+                        }
+
+                        // --- Skill Regen talent: heal %HP per skill cast ---
+                        if (attacker.talentSkillRegen > 0) {
+                            const healed = heal(attacker, attacker.maxHP * (attacker.talentSkillRegen / 100));
+                            if (healed > 0) log(`  → ${who} Skill Regen: ${formatNumber(healed)}`, 'heal');
+                        }
 
                         // --- Execute (Grim Reaper) ---
                         if (sk.execute && defender.hp > 0 && (defender.hp / defender.maxHP * 100) < sk.execute.threshold) {
@@ -3019,7 +3261,7 @@
                 'Combo', 'Counter', 'CritRate', 'SkillCrit', 'Stun', 'Launch', 'Evasion', 'HealingRate', 'HealingAmount',
                 'DMGRES', 'BasicATKRES', 'ComboRES', 'CounterRES', 'SkillRES', 'PalRES', 'BossRES', 'CritRES',
                 'IgnoreEvasion', 'IgnoreCombo', 'IgnoreCounter', 'IgnoreCrit', 'IgnoreStun', 'IgnoreLaunch', 'IgnoreRegen',
-                'Regen', 'ControlRES', 'CDR'
+                'Regen'
             ];
 
             const config = {};
@@ -3027,6 +3269,20 @@
                 const el = document.getElementById(prefix + field);
                 if (el) config[field] = el.value;
             });
+
+            // Talents - checkboxes
+            config.TalentAscension = document.getElementById(prefix + 'TalentAscension').checked;
+            config.TalentRampage = document.getElementById(prefix + 'TalentRampage').checked;
+            config.TalentEagerMomentum = document.getElementById(prefix + 'TalentEagerMomentum').checked;
+            config.TalentGaleBarrage = document.getElementById(prefix + 'TalentGaleBarrage').checked;
+            config.TalentTemporalCompression = document.getElementById(prefix + 'TalentTemporalCompression').checked;
+            config.TalentEndlessOutburst = document.getElementById(prefix + 'TalentEndlessOutburst').checked;
+            // Talents - numeric
+            config.TalentWound = document.getElementById(prefix + 'TalentWound').value;
+            config.TalentEnergyRegen = document.getElementById(prefix + 'TalentEnergyRegen').value;
+            config.TalentCounterRejuv = document.getElementById(prefix + 'TalentCounterRejuv').value;
+            config.TalentComboHealing = document.getElementById(prefix + 'TalentComboHealing').value;
+            config.TalentSkillRegen = document.getElementById(prefix + 'TalentSkillRegen').value;
 
             config.PalWolf = document.getElementById(prefix + 'PalWolf').checked;
             config.PalPup = document.getElementById(prefix + 'PalPup').checked;
@@ -3120,13 +3376,27 @@
                 SkillRES: '55', PalRES: '35', BossRES: '20', CritRES: '3000',
                 IgnoreEvasion: '110', IgnoreCombo: '60', IgnoreCounter: '60', IgnoreCrit: '5',
                 IgnoreStun: '0', IgnoreLaunch: '0', IgnoreRegen: '0',
-                Regen: '9.5', ControlRES: '0', CDR: '20'
+                Regen: '9.5'
             };
 
             Object.keys(defaults).forEach(key => {
                 const el = document.getElementById(who + key);
                 if (el) el.value = defaults[key];
             });
+
+            // Reset talents - checkboxes (all off by default)
+            document.getElementById(who + 'TalentAscension').checked = false;
+            document.getElementById(who + 'TalentRampage').checked = false;
+            document.getElementById(who + 'TalentEagerMomentum').checked = false;
+            document.getElementById(who + 'TalentGaleBarrage').checked = false;
+            document.getElementById(who + 'TalentTemporalCompression').checked = false;
+            document.getElementById(who + 'TalentEndlessOutburst').checked = false;
+            // Reset talents - numeric
+            document.getElementById(who + 'TalentWound').value = '0';
+            document.getElementById(who + 'TalentEnergyRegen').value = '0';
+            document.getElementById(who + 'TalentCounterRejuv').value = '0';
+            document.getElementById(who + 'TalentComboHealing').value = '0';
+            document.getElementById(who + 'TalentSkillRegen').value = '0';
 
             document.getElementById(who + 'PalWolf').checked = true;
             document.getElementById(who + 'PalPup').checked = false;
