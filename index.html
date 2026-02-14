@@ -720,6 +720,7 @@
                 <button class="tab" onclick="showTab('equipment')">Equipment</button>
                 <button class="tab" onclick="showTab('pals')">Pals</button>
                 <button class="tab" onclick="showTab('talents')">Talents</button>
+                <button class="tab" onclick="showTab('relics')">Relics</button>
                 <button class="tab" onclick="showTab('skills')">Skills</button>
             </div>
 
@@ -834,7 +835,7 @@
                         <label for="playerClass">Class</label>
                         <select id="playerClass">
                             <option value="sage">Martial Sage</option>
-                            <option value="other" disabled>Other Classes (Coming Soon)</option>
+                            <option value="hunter">Sacred Hunter</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -1049,7 +1050,7 @@
                         <label for="enemyClass">Class</label>
                         <select id="enemyClass">
                             <option value="sage">Martial Sage</option>
-                            <option value="custom">Custom (Manual Stats)</option>
+                            <option value="hunter">Sacred Hunter</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -1587,6 +1588,127 @@
                 </div>
             </div>
 
+            <!-- Relics Tab -->
+            <div id="tab-relics" class="tab-content">
+                <div class="info-box info">
+                    <strong>Note:</strong> Relics provide passive combat effects. Kite and Flame Book are on/off toggles. Necklace, Statue, and Spore are choose-one dropdowns. Potent Spore amplifies all other relic effects by 40%.
+                </div>
+                <div class="two-column">
+                    <div>
+                        <div class="section-title">Player Relics</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerRelicKite" checked>
+                            <label for="playerRelicKite">Thundercaller Kite</label>
+                            <span class="pal-effect">(After active skills, deal 1705% DMG)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="playerRelicFlameBook" checked>
+                            <label for="playerRelicFlameBook">Flame Book</label>
+                            <span class="pal-effect">(ATK +1%/s, up to 10%)</span>
+                        </div>
+                        <div class="input-grid input-grid-4" style="margin-top: 10px;">
+                            <div class="input-group">
+                                <label for="playerRelicNecklace">Necklace</label>
+                                <select id="playerRelicNecklace">
+                                    <option value="none">None</option>
+                                    <option value="abyss" selected>Abyss</option>
+                                    <option value="shield">Shield</option>
+                                    <option value="crimsonSickle">Crimson Sickle</option>
+                                    <option value="storm">Storm</option>
+                                    <option value="spirit">Spirit</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="playerRelicStatue">Statue</label>
+                                <select id="playerRelicStatue">
+                                    <option value="none">None</option>
+                                    <option value="energy" selected>Energy</option>
+                                    <option value="cage">Cage</option>
+                                    <option value="crystal">Crystal</option>
+                                    <option value="time">Time</option>
+                                    <option value="stellar">Stellar</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="playerRelicSpore">Spore</label>
+                                <select id="playerRelicSpore">
+                                    <option value="none">None</option>
+                                    <option value="potent" selected>Potent</option>
+                                    <option value="thorny">Thorny</option>
+                                    <option value="nirvana">Nirvana</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-box" style="margin-top: 8px; font-size: 0.85em; padding: 8px;">
+                            <strong>Necklace:</strong> Abyss = CDR +30% for Dragonic Res/Windborne/Crimson Moon/Winged Dreams |
+                            Shield = Grim Reaper DMG +80% | Crimson Sickle = Heal 2.5% HP on Blade Pierce/Wild Gust |
+                            Storm = Clone DMG +30% | Spirit = Basic ATK +15% during Blitz Assault<br>
+                            <strong>Statue:</strong> Energy = Batty/Renewal/Shroom DMG +30% | Cage = Durian/Breezy/Slow +30% |
+                            Crystal = Coin/Slime/Meteor +30% | Time = Disarm/Dazzled/Smoke dur +30% |
+                            Stellar = Hundred Slashes/Snare/Star Array/Ancestral dur +50%<br>
+                            <strong>Spore:</strong> Potent = All relic effects +40% | Thorny = Enemy class skill dur -20% |
+                            Nirvana = HP capped at 40% for low-HP triggers
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-title">Enemy Relics</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyRelicKite" checked>
+                            <label for="enemyRelicKite">Thundercaller Kite</label>
+                            <span class="pal-effect">(After active skills, deal 1705% DMG)</span>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enemyRelicFlameBook" checked>
+                            <label for="enemyRelicFlameBook">Flame Book</label>
+                            <span class="pal-effect">(ATK +1%/s, up to 10%)</span>
+                        </div>
+                        <div class="input-grid input-grid-4" style="margin-top: 10px;">
+                            <div class="input-group">
+                                <label for="enemyRelicNecklace">Necklace</label>
+                                <select id="enemyRelicNecklace">
+                                    <option value="none">None</option>
+                                    <option value="abyss" selected>Abyss</option>
+                                    <option value="shield">Shield</option>
+                                    <option value="crimsonSickle">Crimson Sickle</option>
+                                    <option value="storm">Storm</option>
+                                    <option value="spirit">Spirit</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyRelicStatue">Statue</label>
+                                <select id="enemyRelicStatue">
+                                    <option value="none">None</option>
+                                    <option value="energy" selected>Energy</option>
+                                    <option value="cage">Cage</option>
+                                    <option value="crystal">Crystal</option>
+                                    <option value="time">Time</option>
+                                    <option value="stellar">Stellar</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyRelicSpore">Spore</label>
+                                <select id="enemyRelicSpore">
+                                    <option value="none">None</option>
+                                    <option value="potent" selected>Potent</option>
+                                    <option value="thorny">Thorny</option>
+                                    <option value="nirvana">Nirvana</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-box" style="margin-top: 8px; font-size: 0.85em; padding: 8px;">
+                            <strong>Necklace:</strong> Abyss = CDR +30% for Dragonic Res/Windborne/Crimson Moon/Winged Dreams |
+                            Shield = Grim Reaper DMG +80% | Crimson Sickle = Heal 2.5% HP on Blade Pierce/Wild Gust |
+                            Storm = Clone DMG +30% | Spirit = Basic ATK +15% during Blitz Assault<br>
+                            <strong>Statue:</strong> Energy = Batty/Renewal/Shroom DMG +30% | Cage = Durian/Breezy/Slow +30% |
+                            Crystal = Coin/Slime/Meteor +30% | Time = Disarm/Dazzled/Smoke dur +30% |
+                            Stellar = Hundred Slashes/Snare/Star Array/Ancestral dur +50%<br>
+                            <strong>Spore:</strong> Potent = All relic effects +40% | Thorny = Enemy class skill dur -20% |
+                            Nirvana = HP capped at 40% for low-HP triggers
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Skills Tab -->
             <div id="tab-skills" class="tab-content">
                 <div class="info-box info">
@@ -2015,6 +2137,14 @@
                 affixNoSpeeding: document.getElementById(prefix + 'AffixNoSpeeding').checked,
                 affixNoSpeedingReduce: parseFloat(document.getElementById(prefix + 'AffixNoSpeedingReduce').value),
 
+                // Relics
+                relicKite: document.getElementById(prefix + 'RelicKite').checked,
+                relicFlameBook: document.getElementById(prefix + 'RelicFlameBook').checked,
+                relicNecklace: document.getElementById(prefix + 'RelicNecklace').value,
+                relicStatue: document.getElementById(prefix + 'RelicStatue').value,
+                relicSpore: document.getElementById(prefix + 'RelicSpore').value,
+                flameBookStacks: 0,
+
                 totalDamageDealt: 0,
                 healProcs: 0,
                 healCount: 0, // for Deity of Purrs tracking
@@ -2221,6 +2351,29 @@
             let playerOutburstTriggered = false, enemyOutburstTriggered = false;
             let playerOutburstUntil = 0, enemyOutburstUntil = 0;
 
+            // Relic state
+            const playerPotentMult = player.relicSpore === 'potent' ? 1.4 : 1.0;
+            const enemyPotentMult = enemy.relicSpore === 'potent' ? 1.4 : 1.0;
+            let playerFlameBookNext = player.relicFlameBook ? 1 : Infinity;
+            let enemyFlameBookNext = enemy.relicFlameBook ? 1 : Infinity;
+            // Compute Abyss Necklace boosted skill IDs (CDR bonus)
+            const ABYSS_SKILL_IDS = [33, 31, 32, 36]; // Dragonic Res, Windborne Arrow, Crimson Moonfall, Winged Dreams
+            const ENERGY_STATUE_IDS = [12, 13, 14]; // Batty Trace, Nature's Renewal, Shroom Shield
+            const CAGE_STATUE_IDS = [15, 16, 17]; // Durian Bomb, Easy Breezy, Take It Slow
+            const CRYSTAL_STATUE_IDS = [18, 19, 20]; // Coin Bomb, Slime Bomb, Meteor Fall
+            const TIME_STATUE_IDS = [21, 22, 23]; // Disarm, Dazzled, Smoke Bomb
+            const STELLAR_STATUE_IDS = [30, 34, 35, 37]; // Hundred Slashes, Worldly Snare, Star Array, Ancestral Will
+
+            // Sacred Hunter state
+            let playerBoneforgeActive = 0; // Combo RES debuff timer
+            let enemyBoneforgeActive = 0;
+            let playerEnergyLockUntil = 0; // Skills locked from gaining energy
+            let enemyEnergyLockUntil = 0;
+            let playerEnergyLockCount = 0; // Remaining skill casts locked
+            let enemyEnergyLockCount = 0;
+            let playerCritATKBoostUntil = 0; // Hunter passive: ATK +40% after crit
+            let enemyCritATKBoostUntil = 0;
+
             let playerNextRegen = 5;
             let playerNextShield = 10;
             let playerShieldExpires = 0;
@@ -2413,6 +2566,31 @@
                     log('[Talent] Enemy Endless Outburst: Energy Regen +100% for 5s', 'buff');
                 }
 
+                // === RELIC TICKS ===
+                // Flame Book: ATK +1%/s up to 10%
+                if (time >= playerFlameBookNext && player.flameBookStacks < 10) {
+                    player.flameBookStacks++;
+                    const pct = 1 * playerPotentMult;
+                    player.atk = player.baseATK * (1 + player.flameBookStacks * pct / 100 + player.temporalStacks * 0.02);
+                    playerFlameBookNext = time + 1;
+                    log(`[Relic] Player Flame Book: ATK +${pct.toFixed(1)}% (${(player.flameBookStacks * pct).toFixed(1)}% total)`, 'buff');
+                }
+                if (time >= enemyFlameBookNext && enemy.flameBookStacks < 10) {
+                    enemy.flameBookStacks++;
+                    const pct = 1 * enemyPotentMult;
+                    enemy.atk = enemy.baseATK * (1 + enemy.flameBookStacks * pct / 100 + enemy.temporalStacks * 0.02);
+                    enemyFlameBookNext = time + 1;
+                    log(`[Relic] Enemy Flame Book: ATK +${pct.toFixed(1)}% (${(enemy.flameBookStacks * pct).toFixed(1)}% total)`, 'buff');
+                }
+
+                // Hunter passive: expire crit ATK boost
+                if (playerCritATKBoostUntil > 0 && playerCritATKBoostUntil <= time) {
+                    player.atk /= 1.40; playerCritATKBoostUntil = 0;
+                }
+                if (enemyCritATKBoostUntil > 0 && enemyCritATKBoostUntil <= time) {
+                    enemy.atk /= 1.40; enemyCritATKBoostUntil = 0;
+                }
+
                 // Player attacks (skip basic ATK if stunned/disarmed; counters still work)
                 if (time >= playerNextAttack) {
                     const interval = 1 / player.atkSpd;
@@ -2424,6 +2602,10 @@
 
                     if (!roll(evasionChance)) {
                         let dmg = calcBasicATKDamage(player, enemy, pvpFactor);
+                        // Spirit Necklace: basic ATK +15% during Blitz Assault immunity
+                        if (player.relicNecklace === 'spirit' && playerImmuneUntil > time) {
+                            dmg *= (1 + 0.15 * playerPotentMult);
+                        }
                         const isCrit = roll(player.critRate - enemy.ignoreCrit);
                         if (isCrit) dmg = applyCrit(dmg, player, enemy);
                         const result = dealDamage(enemy, dmg);
@@ -2431,6 +2613,20 @@
                         player.dmgBasicATK += result.total;
                         const sn = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
                         log(`Player Basic ATK: ${formatNumber(result.total)}${sn}${isCrit ? ' CRIT!' : ''}`, isCrit ? 'crit' : 'damage');
+
+                        // Hunter passive 1: basic ATK deals 1% target current HP
+                        if (player.class === 'hunter') {
+                            const hpDmg = calcHPDamage(player, enemy, enemy.hp, 1, false, pvpFactor);
+                            const hpRes = dealDamage(enemy, hpDmg);
+                            player.totalDamageDealt += hpRes.total;
+                            player.dmgBasicATK += hpRes.total;
+                            if (hpRes.total > 0) log(`  → Hunter HP DMG: ${formatNumber(hpRes.total)} [1% Cur HP]`, 'damage');
+                        }
+                        // Hunter passive 2: after crit, ATK +40% for 1s
+                        if (isCrit && player.class === 'hunter') {
+                            if (playerCritATKBoostUntil <= time) player.atk *= 1.40;
+                            playerCritATKBoostUntil = time + 1;
+                        }
 
                         // Terminal Strike: chance to wound target
                         if (player.affixTerminalStrike && roll(player.affixTerminalStrikeChance)) {
@@ -2441,7 +2637,12 @@
 
                         const effectiveCombo = Math.max(0, player.combo - enemy.ignoreCombo);
                         if (roll(effectiveCombo)) {
+                            const savedEnemyComboRES = enemy.comboRES;
+                            if (playerBoneforgeActive > time) {
+                                enemy.comboRES = clamp(enemy.comboRES - 40, -100, 80);
+                            }
                             let comboDmg = calcComboDamage(player, enemy, pvpFactor);
+                            enemy.comboRES = savedEnemyComboRES;
                             const comboCrit = roll(player.critRate - enemy.ignoreCrit);
                             if (comboCrit) comboDmg = applyCrit(comboDmg, player, enemy);
                             const comboResult = dealDamage(enemy, comboDmg);
@@ -2449,7 +2650,8 @@
                             player.dmgCombo += comboResult.total;
                             player.comboCount++;
                             const csn = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
-                            log(`  → Combo: ${formatNumber(comboResult.total)}${csn}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                            const bfn = playerBoneforgeActive > time ? ' [ComboRES-40%]' : '';
+                            log(`  → Combo: ${formatNumber(comboResult.total)}${csn}${comboCrit ? ' CRIT!' : ''}${bfn}`, comboCrit ? 'crit' : 'damage');
                             // Combo Healing talent
                             if (player.talentComboHealing > 0 && player.comboCount % 5 === 0) {
                                 const healed = heal(player, player.maxHP * (player.talentComboHealing / 100));
@@ -2524,6 +2726,10 @@
 
                     if (!roll(evasionChance)) {
                         let dmg = calcBasicATKDamage(enemy, player, pvpFactor);
+                        // Spirit Necklace: basic ATK +15% during Blitz Assault immunity
+                        if (enemy.relicNecklace === 'spirit' && enemyImmuneUntil > time) {
+                            dmg *= (1 + 0.15 * enemyPotentMult);
+                        }
                         const isCrit = roll(enemy.critRate - player.ignoreCrit);
                         if (isCrit) dmg = applyCrit(dmg, enemy, player);
                         const result = dealDamage(player, dmg, true);
@@ -2531,6 +2737,20 @@
                         enemy.dmgBasicATK += result.total;
                         const sn = result.shielded > 0 ? ` (${formatNumber(result.shielded)} blocked)` : '';
                         log(`Enemy Basic ATK: ${formatNumber(result.total)}${sn}${isCrit ? ' CRIT!' : ''}`, isCrit ? 'crit' : 'damage');
+
+                        // Hunter passive 1: basic ATK deals 1% target current HP
+                        if (enemy.class === 'hunter') {
+                            const hpDmg = calcHPDamage(enemy, player, player.hp, 1, false, pvpFactor);
+                            const hpRes = dealDamage(player, hpDmg, true);
+                            enemy.totalDamageDealt += hpRes.total;
+                            enemy.dmgBasicATK += hpRes.total;
+                            if (hpRes.total > 0) log(`  → Hunter HP DMG: ${formatNumber(hpRes.total)} [1% Cur HP]`, 'damage');
+                        }
+                        // Hunter passive 2: after crit, ATK +40% for 1s
+                        if (isCrit && enemy.class === 'hunter') {
+                            if (enemyCritATKBoostUntil <= time) enemy.atk *= 1.40;
+                            enemyCritATKBoostUntil = time + 1;
+                        }
 
                         if (enemy.affixTerminalStrike && roll(enemy.affixTerminalStrikeChance)) {
                             player.woundedUntil = time + 1;
@@ -2540,7 +2760,12 @@
 
                         const effectiveCombo = Math.max(0, enemy.combo - player.ignoreCombo);
                         if (roll(effectiveCombo)) {
+                            const savedPlayerComboRES = player.comboRES;
+                            if (enemyBoneforgeActive > time) {
+                                player.comboRES = clamp(player.comboRES - 40, -100, 80);
+                            }
                             let comboDmg = calcComboDamage(enemy, player, pvpFactor);
+                            player.comboRES = savedPlayerComboRES;
                             const comboCrit = roll(enemy.critRate - player.ignoreCrit);
                             if (comboCrit) comboDmg = applyCrit(comboDmg, enemy, player);
                             const comboResult = dealDamage(player, comboDmg, true);
@@ -2548,7 +2773,8 @@
                             enemy.dmgCombo += comboResult.total;
                             enemy.comboCount++;
                             const csn = comboResult.shielded > 0 ? ` (${formatNumber(comboResult.shielded)} blocked)` : '';
-                            log(`  → Combo: ${formatNumber(comboResult.total)}${csn}${comboCrit ? ' CRIT!' : ''}`, comboCrit ? 'crit' : 'damage');
+                            const bfn = enemyBoneforgeActive > time ? ' [ComboRES-40%]' : '';
+                            log(`  → Combo: ${formatNumber(comboResult.total)}${csn}${comboCrit ? ' CRIT!' : ''}${bfn}`, comboCrit ? 'crit' : 'damage');
                             // Combo Healing talent
                             if (enemy.talentComboHealing > 0 && enemy.comboCount % 5 === 0) {
                                 const healed = heal(enemy, enemy.maxHP * (enemy.talentComboHealing / 100));
@@ -2617,7 +2843,7 @@
                     const pCdMult = (1 - player.cdr / 100) * (playerOutburstUntil > time ? 0.5 : 1);
                     playerClassSkillCD = time + Math.max(1, 15 * pCdMult);
                     player.classSkillCount++;
-                    const buffDur = 8 * playerNoSpeedingMult;
+                    const buffDur = 8 * playerNoSpeedingMult * (enemy.relicSpore === 'thorny' ? 0.80 : 1);
                     playerBladesReunionActive = time + buffDur;
                     enemyCounterRESDebuff = time + buffDur;
                     let skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
@@ -2642,11 +2868,41 @@
                     }
                 }
 
+                // Sacred Hunter: Piercing Boneforge (player)
+                if (player.class === 'hunter' && time >= playerClassSkillCD) {
+                    const pCdMult = (1 - player.cdr / 100) * (playerOutburstUntil > time ? 0.5 : 1);
+                    playerClassSkillCD = time + Math.max(1, 15 * pCdMult);
+                    player.classSkillCount++;
+                    const buffDur = 8 * playerNoSpeedingMult * (enemy.relicSpore === 'thorny' ? 0.80 : 1);
+                    playerBoneforgeActive = time + buffDur;
+                    enemyEnergyLockUntil = time + 4;
+                    enemyEnergyLockCount = 6;
+                    let skillDmg = calcSkillDamage(player, enemy, 14161, pvpFactor);
+                    const skillCrit = roll(player.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, player.skillCritDMG / enemy.critRES);
+                        skillDmg *= skillCritMult;
+                    }
+                    const skillResult = dealDamage(enemy, skillDmg);
+                    player.totalDamageDealt += skillResult.total;
+                    player.dmgClassSkill += skillResult.total;
+                    const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
+                    log(`Player PIERCING BONEFORGE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Combo RES -40% ${buffDur.toFixed(1)}s, Energy Lock 4s]`, 'skill');
+                    if (player.affixWindTear) {
+                        const wtDmg = calcHPDamage(player, enemy, enemy.hp, player.affixWindTearHP, false, pvpFactor);
+                        const wtResult = dealDamage(enemy, wtDmg);
+                        player.totalDamageDealt += wtResult.total;
+                        player.dmgWindTear += wtResult.total;
+                        player.windTearCount++;
+                        log(`  → Player Wind Tear: ${formatNumber(wtResult.total)} [${player.affixWindTearHP}% Cur HP]`, 'damage');
+                    }
+                }
+
                 if (enemy.class === 'sage' && time >= enemyClassSkillCD) {
                     const eCdMult = (1 - enemy.cdr / 100) * (enemyOutburstUntil > time ? 0.5 : 1);
                     enemyClassSkillCD = time + Math.max(1, 15 * eCdMult);
                     enemy.classSkillCount++;
-                    const buffDur = 8 * enemyNoSpeedingMult;
+                    const buffDur = 8 * enemyNoSpeedingMult * (player.relicSpore === 'thorny' ? 0.80 : 1);
                     enemyBladesReunionActive = time + buffDur;
                     playerCounterRESDebuff = time + buffDur;
                     let skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
@@ -2670,14 +2926,66 @@
                     }
                 }
 
+                // Sacred Hunter: Piercing Boneforge (enemy)
+                if (enemy.class === 'hunter' && time >= enemyClassSkillCD) {
+                    const eCdMult = (1 - enemy.cdr / 100) * (enemyOutburstUntil > time ? 0.5 : 1);
+                    enemyClassSkillCD = time + Math.max(1, 15 * eCdMult);
+                    enemy.classSkillCount++;
+                    const buffDur = 8 * enemyNoSpeedingMult * (player.relicSpore === 'thorny' ? 0.80 : 1);
+                    enemyBoneforgeActive = time + buffDur;
+                    playerEnergyLockUntil = time + 4;
+                    playerEnergyLockCount = 6;
+                    let skillDmg = calcSkillDamage(enemy, player, 14161, pvpFactor);
+                    const skillCrit = roll(enemy.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, enemy.skillCritDMG / player.critRES);
+                        skillDmg *= skillCritMult;
+                    }
+                    const skillResult = dealDamage(player, skillDmg, true);
+                    enemy.totalDamageDealt += skillResult.total;
+                    enemy.dmgClassSkill += skillResult.total;
+                    const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
+                    log(`Enemy PIERCING BONEFORGE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Combo RES -40% ${buffDur.toFixed(1)}s, Energy Lock 4s]`, 'skill');
+                    if (enemy.affixWindTear) {
+                        const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
+                        const wtResult = dealDamage(player, wtDmg, true);
+                        enemy.totalDamageDealt += wtResult.total;
+                        enemy.dmgWindTear += wtResult.total;
+                        enemy.windTearCount++;
+                        log(`  → Enemy Wind Tear: ${formatNumber(wtResult.total)} [${enemy.affixWindTearHP}% Cur HP]`, 'damage');
+                    }
+                }
+
                 // === ACTIVE SKILLS (5 slots per side) ===
                 function processActiveSkills(attacker, defender, skills, isDefenderPlayer, noSpeedMult) {
                     for (const sk of skills) {
                         // Check cooldown
                         if (time < sk._cd) continue;
+
+                        // Energy Lock from Piercing Boneforge: delay skill casts
+                        const aLockCount = attacker === player ? playerEnergyLockCount : enemyEnergyLockCount;
+                        const aLockUntil = attacker === player ? playerEnergyLockUntil : enemyEnergyLockUntil;
+                        if (aLockCount > 0 && time < aLockUntil) {
+                            sk._cd = aLockUntil;
+                            if (attacker === player) playerEnergyLockCount--;
+                            else enemyEnergyLockCount--;
+                            continue;
+                        }
+
+                        const potMult = attacker === player ? playerPotentMult : enemyPotentMult;
                         const outburstMult = (attacker === player ? playerOutburstUntil : enemyOutburstUntil) > time ? 0.5 : 1;
-                        sk._cd = time + Math.max(1, sk.cd * (1 - attacker.cdr / 100) * outburstMult);
+                        let cdMult = (1 - attacker.cdr / 100) * outburstMult;
+                        // Abyss Necklace: Energy Regen SPD +30% for specific skills
+                        if (attacker.relicNecklace === 'abyss' && ABYSS_SKILL_IDS.includes(sk.id)) {
+                            cdMult *= (1 - 0.30 * potMult);
+                        }
+                        sk._cd = time + Math.max(1, sk.cd * cdMult);
                         attacker.activeSkillCount++;
+
+                        // Compute statue duration multiplier for buffs/debuffs/CC
+                        let statDurMult = 1;
+                        if (attacker.relicStatue === 'time' && TIME_STATUE_IDS.includes(sk.id)) statDurMult = 1 + 0.30 * potMult;
+                        if (attacker.relicStatue === 'stellar' && STELLAR_STATUE_IDS.includes(sk.id)) statDurMult = 1 + 0.50 * potMult;
 
                         // --- Instant damage ---
                         let dmgPct = sk.dmgPercent;
@@ -2686,6 +2994,13 @@
                             dmgPct *= (1 + sk._moonStacks * sk.stacking.bonusPercent / 100);
                             if (sk._moonStacks < sk.stacking.maxStacks) sk._moonStacks++;
                         }
+                        // Necklace DMG boosts
+                        if (attacker.relicNecklace === 'shield' && sk.id === 24) dmgPct *= (1 + 0.80 * potMult);
+                        if (attacker.relicNecklace === 'storm' && sk.id === 29) dmgPct *= (1 + 0.30 * potMult);
+                        // Statue DMG boosts
+                        if (attacker.relicStatue === 'energy' && ENERGY_STATUE_IDS.includes(sk.id)) dmgPct *= (1 + 0.30 * potMult);
+                        if (attacker.relicStatue === 'cage' && CAGE_STATUE_IDS.includes(sk.id)) dmgPct *= (1 + 0.30 * potMult);
+                        if (attacker.relicStatue === 'crystal' && CRYSTAL_STATUE_IDS.includes(sk.id)) dmgPct *= (1 + 0.30 * potMult);
                         if (dmgPct > 0) {
                             let sDmg = calcSkillDamage(attacker, defender, dmgPct, pvpFactor);
                             const sCrit = roll(attacker.skillCrit);
@@ -2711,6 +3026,23 @@
                         }
 
                         const who = attacker === player ? 'Player' : 'Enemy';
+
+                        // --- Thundercaller Kite: deal 1705% DMG after active skill ---
+                        if (attacker.relicKite) {
+                            const kitePct = 1705 * potMult;
+                            let kiteDmg = calcSkillDamage(attacker, defender, kitePct, pvpFactor);
+                            const kiteRes = dealDamage(defender, kiteDmg, isDefenderPlayer);
+                            attacker.totalDamageDealt += kiteRes.total;
+                            attacker.dmgActiveSkills += kiteRes.total;
+                            log(`  → ${who} Kite: ${formatNumber(kiteRes.total)} [${kitePct.toFixed(0)}%]`, 'skill');
+                        }
+
+                        // --- Crimson Sickle Necklace: heal 2.5% max HP on Blade Pierce / Wild Gust ---
+                        if (attacker.relicNecklace === 'crimson' && (sk.id === 28 || sk.id === 26)) {
+                            const healPct = 2.5 * potMult;
+                            const healed = heal(attacker, attacker.maxHP * (healPct / 100));
+                            if (healed > 0) log(`  → ${who} Crimson Sickle heal: ${formatNumber(healed)}`, 'heal');
+                        }
 
                         // --- Temporal Compression: ATK +2% per skill cast (max 30%) ---
                         if (attacker.talentTemporalCompression && attacker.temporalStacks < 15) {
@@ -2766,7 +3098,7 @@
                         // --- Self Buff ---
                         if (sk.selfBuff) {
                             const b = sk.selfBuff;
-                            const dur = b.duration * noSpeedMult;
+                            const dur = b.duration * noSpeedMult * statDurMult;
                             const expires = time + dur;
                             if (b.stat === 'basicATKMult' && b.addPercent) {
                                 attacker.basicATKMult += b.addPercent;
@@ -2806,7 +3138,7 @@
                         // --- Self Buff 2 (Hundred Slashes ATK% of HP) ---
                         if (sk.selfBuff2) {
                             const b2 = sk.selfBuff2;
-                            const dur = b2.duration * noSpeedMult;
+                            const dur = b2.duration * noSpeedMult * statDurMult;
                             const atkAdd = attacker.hp * (b2.hpPercent / 100);
                             attacker.atk += atkAdd;
                             (attacker === player ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { attacker.atk -= atkAdd; }});
@@ -2815,7 +3147,7 @@
                         // --- Enemy Debuff ---
                         if (sk.enemyDebuff) {
                             const d = sk.enemyDebuff;
-                            const dur = d.duration * noSpeedMult;
+                            const dur = d.duration * noSpeedMult * statDurMult;
                             if (d.stat === 'atkSpd' && d.mult) {
                                 defender.atkSpd *= d.mult;
                                 (isDefenderPlayer ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { defender.atkSpd /= d.mult; }});
@@ -2833,7 +3165,7 @@
 
                         // --- CC (Stun/Disarm) ---
                         if (sk.cc) {
-                            const ccEnd = time + sk.cc.duration;
+                            const ccEnd = time + sk.cc.duration * statDurMult;
                             if (isDefenderPlayer) { playerCCUntil = Math.max(playerCCUntil, ccEnd); }
                             else { enemyCCUntil = Math.max(enemyCCUntil, ccEnd); }
                             log(`  → ${who} ${sk.cc.type === 'stun' ? 'STUN' : 'DISARM'}: ${sk.cc.duration}s`, 'skill');
@@ -2900,6 +3232,11 @@
                         if (sk.clone && sk._cloneEnd > time && sk._cloneNextAtk <= time) {
                             sk._cloneNextAtk = time + 1 / 3;
                             let cloneDmg = calcSkillDamage(attacker, defender, sk.clone.dmgPercent, pvpFactor);
+                            // Storm Necklace: Clone DMG +30%
+                            if (attacker.relicNecklace === 'storm') {
+                                const pm = attacker === player ? playerPotentMult : enemyPotentMult;
+                                cloneDmg *= (1 + 0.30 * pm);
+                            }
                             const cloneRes = dealDamage(defender, cloneDmg, isDefenderPlayer);
                             attacker.totalDamageDealt += cloneRes.total;
                             attacker.dmgClone += cloneRes.total;
@@ -3297,6 +3634,13 @@
             config.AvianHPPercent = document.getElementById(prefix + 'AvianHPPercent').value;
             config.AvianInterval = document.getElementById(prefix + 'AvianInterval').value;
 
+            // Relics
+            config.RelicKite = document.getElementById(prefix + 'RelicKite').checked;
+            config.RelicFlameBook = document.getElementById(prefix + 'RelicFlameBook').checked;
+            config.RelicNecklace = document.getElementById(prefix + 'RelicNecklace').value;
+            config.RelicStatue = document.getElementById(prefix + 'RelicStatue').value;
+            config.RelicSpore = document.getElementById(prefix + 'RelicSpore').value;
+
             // Avian affixes
             config.AffixPunchCounter = document.getElementById(prefix + 'AffixPunchCounter').checked;
             config.AffixPunchCounterHP = document.getElementById(prefix + 'AffixPunchCounterHP').value;
@@ -3366,7 +3710,21 @@
         function resetFields(who) {
             if (!confirm(`Reset all ${who} fields to defaults?`)) return;
 
-            const defaults = {
+            const selectedClass = document.getElementById(who + 'Class').value;
+            const isHunter = selectedClass === 'hunter';
+
+            const defaults = isHunter ? {
+                Class: 'hunter', Level: '200', ATK: '12000', HP: '4000', DEF: '5500', ATKSPD: '3.7',
+                BasicATKMult: '7500', ComboMult: '3500', CounterMult: '5500', CritDMG: '1000',
+                SkillDMG: '1450', SkillCritDMG: '160', PalDMG: '1377', BossDMG: '30',
+                Combo: '30', Counter: '0', CritRate: '35', SkillCrit: '0',
+                Stun: '0', Launch: '0', Evasion: '200', HealingRate: '50', HealingAmount: '0.35',
+                DMGRES: '30', BasicATKRES: '15', ComboRES: '35', CounterRES: '35',
+                SkillRES: '55', PalRES: '35', BossRES: '20', CritRES: '3000',
+                IgnoreEvasion: '135', IgnoreCombo: '60', IgnoreCounter: '60', IgnoreCrit: '5',
+                IgnoreStun: '0', IgnoreLaunch: '0', IgnoreRegen: '0',
+                Regen: '9.5'
+            } : {
                 Class: 'sage', Level: '200', ATK: '12000', HP: '4000', DEF: '5500', ATKSPD: '3.21',
                 BasicATKMult: '7500', ComboMult: '3500', CounterMult: '5500', CritDMG: '1000',
                 SkillDMG: '1450', SkillCritDMG: '160', PalDMG: '1377', BossDMG: '30',
@@ -3406,9 +3764,17 @@
             document.getElementById(who + 'PalAlpacaBell').checked = false;
             document.getElementById(who + 'PalMellowCloud').checked = false;
             document.getElementById(who + 'PalTreasureDragon').checked = false;
-            document.getElementById(who + 'Avian').value = 'deity';
-            document.getElementById(who + 'AvianHPPercent').value = '5.87';
-            document.getElementById(who + 'AvianInterval').value = '16';
+
+            // Avian defaults (Bee for Hunter, Deity for Sage)
+            if (isHunter) {
+                document.getElementById(who + 'Avian').value = 'bee';
+                document.getElementById(who + 'AvianHPPercent').value = '3.58';
+                document.getElementById(who + 'AvianInterval').value = '5';
+            } else {
+                document.getElementById(who + 'Avian').value = 'deity';
+                document.getElementById(who + 'AvianHPPercent').value = '5.87';
+                document.getElementById(who + 'AvianInterval').value = '16';
+            }
 
             // Reset affixes
             document.getElementById(who + 'AffixPunchCounter').checked = true;
@@ -3421,6 +3787,13 @@
             document.getElementById(who + 'AffixTerminalStrikeChance').value = '8';
             document.getElementById(who + 'AffixNoSpeeding').checked = true;
             document.getElementById(who + 'AffixNoSpeedingReduce').value = '19.2';
+
+            // Reset relics
+            document.getElementById(who + 'RelicKite').checked = true;
+            document.getElementById(who + 'RelicFlameBook').checked = true;
+            document.getElementById(who + 'RelicNecklace').value = 'abyss';
+            document.getElementById(who + 'RelicStatue').value = 'energy';
+            document.getElementById(who + 'RelicSpore').value = 'potent';
 
             // Reset active skill slots to default loadout
             const defaultSkills = [
@@ -3515,6 +3888,7 @@
 
         const classMapping = {
             'Martial Sage': 'sage',
+            'Sacred Hunter': 'hunter',
             'Plume Monarch': 'archer',
             'Flame Wizard': 'mage',
             'Crystal Sage': 'crystal',
