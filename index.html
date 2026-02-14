@@ -1756,7 +1756,15 @@
 
                 <!-- HP Graph -->
                 <div class="graph-container">
-                    <h4>📊 HP Over Time</h4>
+                    <h4>HP Over Time</h4>
+                    <div id="chartToggles" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:8px;font-size:0.8em;">
+                        <label style="color:#51cf66;cursor:pointer;"><input type="checkbox" id="togglePlayerCDR" onchange="renderHPChart()"> P: CDR</label>
+                        <label style="color:#74c0fc;cursor:pointer;"><input type="checkbox" id="togglePlayerATK" onchange="renderHPChart()"> P: ATK%</label>
+                        <label style="color:#ff6b6b;cursor:pointer;"><input type="checkbox" id="toggleEnemyCDR" onchange="renderHPChart()"> E: CDR</label>
+                        <label style="color:#ffa8a8;cursor:pointer;"><input type="checkbox" id="toggleEnemyATK" onchange="renderHPChart()"> E: ATK%</label>
+                        <span id="skillTogglesPlayer" style="display:contents;"></span>
+                        <span id="skillTogglesEnemy" style="display:contents;"></span>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="hpChart"></canvas>
                     </div>
@@ -2367,10 +2375,6 @@
             // Sacred Hunter state
             let playerBoneforgeActive = 0; // Combo RES debuff timer
             let enemyBoneforgeActive = 0;
-            let playerEnergyLockUntil = 0; // Skills locked from gaining energy
-            let enemyEnergyLockUntil = 0;
-            let playerEnergyLockCount = 0; // Remaining skill casts locked
-            let enemyEnergyLockCount = 0;
             let playerCritATKBoostUntil = 0; // Hunter passive: ATK +40% after crit
             let enemyCritATKBoostUntil = 0;
 
@@ -2428,9 +2432,20 @@
             const playerBuffs = [];
             const enemyBuffs = [];
 
-            // Initialize active skill cooldowns (stagger by 0.5s each to avoid simultaneous fire)
-            player.activeSkills.forEach((sk, i) => { sk._cd = i * 0.5; });
-            enemy.activeSkills.forEach((sk, i) => { sk._cd = i * 0.5; });
+            // Initialize active skill cooldowns: all fire near t=0, Blitz Assault (27) first
+            function initSkillCDs(skills) {
+                let t = 0;
+                // Blitz Assault first
+                skills.forEach(sk => { if (sk.id === 27) { sk._cd = t; t += 0.01; } });
+                // Remaining in slot order
+                skills.forEach(sk => { if (sk.id !== 27) { sk._cd = t; t += 0.01; } });
+                return t;
+            }
+            const playerClassDelay = initSkillCDs(player.activeSkills);
+            const enemyClassDelay = initSkillCDs(enemy.activeSkills);
+            // Class skill fires last (after all active skills)
+            playerClassSkillCD = playerClassDelay;
+            enemyClassSkillCD = enemyClassDelay;
 
             // General regen timing (ticks every 1s)
             let playerNextGeneralRegen = 1;
@@ -2439,7 +2454,11 @@
             const battleLog = [];
             let winner = null;
 
-            const hpHistory = { times: [], playerHP: [], enemyHP: [] };
+            const hpHistory = {
+                times: [], playerHP: [], enemyHP: [],
+                playerCDR: [], enemyCDR: [], playerATK: [], enemyATK: []
+            };
+            const skillEvents = { player: [], enemy: [] };
             let lastSampleTime = -1;
 
             function log(msg, type = '') {
@@ -2451,6 +2470,14 @@
                     hpHistory.times.push(time.toFixed(1));
                     hpHistory.playerHP.push((player.hp / player.maxHP * 100).toFixed(1));
                     hpHistory.enemyHP.push((enemy.hp / enemy.maxHP * 100).toFixed(1));
+                    // Effective CDR: base CDR + outburst doubling
+                    const pCDR = (1 - (1 - player.cdr / 100) * (playerOutburstUntil > time ? 0.5 : 1)) * 100;
+                    const eCDR = (1 - (1 - enemy.cdr / 100) * (enemyOutburstUntil > time ? 0.5 : 1)) * 100;
+                    hpHistory.playerCDR.push(pCDR.toFixed(1));
+                    hpHistory.enemyCDR.push(eCDR.toFixed(1));
+                    // ATK as % of base
+                    hpHistory.playerATK.push((player.atk / player.baseATK * 100).toFixed(1));
+                    hpHistory.enemyATK.push((enemy.atk / enemy.baseATK * 100).toFixed(1));
                     lastSampleTime = time;
                 }
             }
@@ -2857,7 +2884,7 @@
                     player.dmgClassSkill += skillResult.total;
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Player BLADES REUNION: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s]`, 'skill');
-                    // Wind Tear: separate HP damage (no crit, no resistance)
+                    skillEvents.player.push({ name: 'Blades Reunion', id: 'class', start: time, end: time + buffDur });
                     if (player.affixWindTear) {
                         const wtDmg = calcHPDamage(player, enemy, enemy.hp, player.affixWindTearHP, false, pvpFactor);
                         const wtResult = dealDamage(enemy, wtDmg);
@@ -2875,8 +2902,9 @@
                     player.classSkillCount++;
                     const buffDur = 8 * playerNoSpeedingMult * (enemy.relicSpore === 'thorny' ? 0.80 : 1);
                     playerBoneforgeActive = time + buffDur;
-                    enemyEnergyLockUntil = time + 4;
-                    enemyEnergyLockCount = 6;
+                    // Energy lock: add 4s to all enemy skill CDs
+                    enemy.activeSkills.forEach(sk => { sk._cd += 4; });
+                    enemyClassSkillCD += 4;
                     let skillDmg = calcSkillDamage(player, enemy, 14161, pvpFactor);
                     const skillCrit = roll(player.skillCrit);
                     if (skillCrit) {
@@ -2888,6 +2916,7 @@
                     player.dmgClassSkill += skillResult.total;
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Player PIERCING BONEFORGE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Combo RES -40% ${buffDur.toFixed(1)}s, Energy Lock 4s]`, 'skill');
+                    skillEvents.player.push({ name: 'Piercing Boneforge', id: 'class', start: time, end: time + buffDur });
                     if (player.affixWindTear) {
                         const wtDmg = calcHPDamage(player, enemy, enemy.hp, player.affixWindTearHP, false, pvpFactor);
                         const wtResult = dealDamage(enemy, wtDmg);
@@ -2916,6 +2945,7 @@
                     enemy.dmgClassSkill += skillResult.total;
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Enemy BLADES REUNION: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s]`, 'skill');
+                    skillEvents.enemy.push({ name: 'Blades Reunion', id: 'class', start: time, end: time + buffDur });
                     if (enemy.affixWindTear) {
                         const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
                         const wtResult = dealDamage(player, wtDmg, true);
@@ -2933,8 +2963,9 @@
                     enemy.classSkillCount++;
                     const buffDur = 8 * enemyNoSpeedingMult * (player.relicSpore === 'thorny' ? 0.80 : 1);
                     enemyBoneforgeActive = time + buffDur;
-                    playerEnergyLockUntil = time + 4;
-                    playerEnergyLockCount = 6;
+                    // Energy lock: add 4s to all player skill CDs
+                    player.activeSkills.forEach(sk => { sk._cd += 4; });
+                    playerClassSkillCD += 4;
                     let skillDmg = calcSkillDamage(enemy, player, 14161, pvpFactor);
                     const skillCrit = roll(enemy.skillCrit);
                     if (skillCrit) {
@@ -2946,6 +2977,7 @@
                     enemy.dmgClassSkill += skillResult.total;
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Enemy PIERCING BONEFORGE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Combo RES -40% ${buffDur.toFixed(1)}s, Energy Lock 4s]`, 'skill');
+                    skillEvents.enemy.push({ name: 'Piercing Boneforge', id: 'class', start: time, end: time + buffDur });
                     if (enemy.affixWindTear) {
                         const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
                         const wtResult = dealDamage(player, wtDmg, true);
@@ -2961,16 +2993,6 @@
                     for (const sk of skills) {
                         // Check cooldown
                         if (time < sk._cd) continue;
-
-                        // Energy Lock from Piercing Boneforge: delay skill casts
-                        const aLockCount = attacker === player ? playerEnergyLockCount : enemyEnergyLockCount;
-                        const aLockUntil = attacker === player ? playerEnergyLockUntil : enemyEnergyLockUntil;
-                        if (aLockCount > 0 && time < aLockUntil) {
-                            sk._cd = aLockUntil;
-                            if (attacker === player) playerEnergyLockCount--;
-                            else enemyEnergyLockCount--;
-                            continue;
-                        }
 
                         const potMult = attacker === player ? playerPotentMult : enemyPotentMult;
                         const outburstMult = (attacker === player ? playerOutburstUntil : enemyOutburstUntil) > time ? 0.5 : 1;
@@ -3197,6 +3219,22 @@
                             else enemyShieldExpires = Math.max(enemyShieldExpires, shieldExpire);
                             log(`  → ${who} Shield: ${formatNumber(shieldAmt)} (${shieldDur}s)`, 'skill');
                         }
+
+                        // Record skill event for uptime visualization
+                        let effectDur = 0;
+                        if (sk.dot) effectDur = Math.max(effectDur, sk.dot.duration);
+                        if (sk.hpDot) effectDur = Math.max(effectDur, sk.hpDot.duration);
+                        if (sk.clone) effectDur = Math.max(effectDur, sk.clone.duration);
+                        if (sk.selfBuff) effectDur = Math.max(effectDur, sk.selfBuff.duration * noSpeedMult * statDurMult);
+                        if (sk.selfBuff2) effectDur = Math.max(effectDur, sk.selfBuff2.duration * noSpeedMult * statDurMult);
+                        if (sk.enemyDebuff) effectDur = Math.max(effectDur, sk.enemyDebuff.duration * noSpeedMult * statDurMult);
+                        if (sk.cc) effectDur = Math.max(effectDur, sk.cc.duration * statDurMult);
+                        if (sk.immunity) effectDur = Math.max(effectDur, sk.immunity.duration);
+                        if (sk.heal) effectDur = Math.max(effectDur, sk.heal.duration);
+                        if (sk.shield) effectDur = Math.max(effectDur, sk.shield.duration);
+                        if (effectDur === 0) effectDur = 0.3;
+                        const evts = attacker === player ? skillEvents.player : skillEvents.enemy;
+                        evts.push({ name: sk.name, id: sk.id, start: time, end: time + effectDur });
                     }
                 }
 
@@ -3398,13 +3436,13 @@
                 winner = playerPct > enemyPct ? 'Player (HP%)' : enemyPct > playerPct ? 'Enemy (HP%)' : 'Draw';
             }
 
-            displayResults(player, enemy, time, winner, battleLog, hpHistory);
+            displayResults(player, enemy, time, winner, battleLog, hpHistory, skillEvents);
         }
 
         // Store full log globally for toggle
         let lastFullBattleLog = [];
 
-        function displayResults(player, enemy, duration, winner, battleLog, hpHistory) {
+        function displayResults(player, enemy, duration, winner, battleLog, hpHistory, skillEvents) {
             document.getElementById('results-section').classList.remove('hidden');
             lastFullBattleLog = battleLog;
 
@@ -3431,13 +3469,14 @@
 
             // Per-source damage breakdown
             function buildBreakdown(who, stats) {
+                const classSkillName = stats.class === 'hunter' ? 'Piercing Boneforge' : 'Blades Reunion';
                 const sources = [
                     ['Basic ATK', stats.dmgBasicATK],
                     ['Combo', stats.dmgCombo],
                     ['Counter', stats.dmgCounter],
-                    ['Sage Class Skill HP', stats.dmgSageClassSkillHP],
+                    [stats.class === 'sage' ? 'Sage Class Skill HP' : 'Hunter HP (1% Cur)', stats.dmgSageClassSkillHP],
                     ['Punch Counter', stats.dmgPunchCounter],
-                    ['Class Skill (Blades Reunion)', stats.dmgClassSkill],
+                    [`Class Skill (${classSkillName})`, stats.dmgClassSkill],
                     ['Active Skills', stats.dmgActiveSkills],
                     ['Skill DoTs', stats.dmgDot],
                     ['HP% DoTs', stats.dmgHpDot],
@@ -3493,7 +3532,17 @@
             document.getElementById('showFullLog').checked = false;
             renderBattleLog(false);
 
-            renderHPChart(hpHistory);
+            // Store data globally for toggle updates
+            lastHPHistory = hpHistory;
+            lastSkillEvents = skillEvents;
+            lastPlayerClass = player.class;
+            lastEnemyClass = enemy.class;
+            lastPlayerSkills = player.activeSkills.map(sk => sk.name);
+            lastEnemySkills = enemy.activeSkills.map(sk => sk.name);
+
+            // Build skill toggle checkboxes
+            buildSkillToggles(player, enemy, skillEvents);
+            renderHPChart();
         }
 
         function toggleFullLog() {
@@ -3509,47 +3558,222 @@
             logEl.scrollTop = showFull ? 0 : logEl.scrollHeight;
         }
 
-        function renderHPChart(hpHistory) {
+        // Global chart state for toggle updates
+        let lastHPHistory = null;
+        let lastSkillEvents = null;
+        let lastPlayerClass = 'sage';
+        let lastEnemyClass = 'sage';
+        let lastPlayerSkills = [];
+        let lastEnemySkills = [];
+
+        const SKILL_COLORS_P = ['#51cf66','#74c0fc','#ffd43b','#cc5de8','#ff922b','#20c997'];
+        const SKILL_COLORS_E = ['#ff6b6b','#ffa8a8','#f08c00','#e599f7','#fd7e14','#fa5252'];
+
+        function buildSkillToggles(player, enemy, skillEvents) {
+            // Build unique skill names from events
+            const pNames = new Set();
+            const eName = new Set();
+            skillEvents.player.forEach(e => pNames.add(e.name));
+            skillEvents.enemy.forEach(e => eName.add(e.name));
+
+            let pHtml = '';
+            let idx = 0;
+            pNames.forEach(name => {
+                const color = SKILL_COLORS_P[idx % SKILL_COLORS_P.length];
+                pHtml += `<label style="color:${color};cursor:pointer;"><input type="checkbox" data-skill-toggle="p_${name}" onchange="renderHPChart()"> P: ${name}</label>`;
+                idx++;
+            });
+            document.getElementById('skillTogglesPlayer').innerHTML = pHtml;
+
+            let eHtml = '';
+            idx = 0;
+            eName.forEach(name => {
+                const color = SKILL_COLORS_E[idx % SKILL_COLORS_E.length];
+                eHtml += `<label style="color:${color};cursor:pointer;"><input type="checkbox" data-skill-toggle="e_${name}" onchange="renderHPChart()"> E: ${name}</label>`;
+                idx++;
+            });
+            document.getElementById('skillTogglesEnemy').innerHTML = eHtml;
+        }
+
+        function renderHPChart() {
+            if (!lastHPHistory) return;
+            const hpHistory = lastHPHistory;
             const ctx = document.getElementById('hpChart').getContext('2d');
-            
+
             if (hpChart) hpChart.destroy();
+
+            const datasets = [
+                {
+                    label: 'Player HP %',
+                    data: hpHistory.playerHP,
+                    borderColor: '#51cf66',
+                    backgroundColor: 'rgba(81, 207, 102, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Enemy HP %',
+                    data: hpHistory.enemyHP,
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                }
+            ];
+
+            // CDR/ATK overlay lines
+            if (document.getElementById('togglePlayerCDR').checked) {
+                datasets.push({
+                    label: 'Player CDR %',
+                    data: hpHistory.playerCDR,
+                    borderColor: '#51cf66',
+                    borderWidth: 1.5,
+                    borderDash: [6, 3],
+                    fill: false,
+                    tension: 0,
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                });
+            }
+            if (document.getElementById('toggleEnemyCDR').checked) {
+                datasets.push({
+                    label: 'Enemy CDR %',
+                    data: hpHistory.enemyCDR,
+                    borderColor: '#ff6b6b',
+                    borderWidth: 1.5,
+                    borderDash: [6, 3],
+                    fill: false,
+                    tension: 0,
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                });
+            }
+            if (document.getElementById('togglePlayerATK').checked) {
+                datasets.push({
+                    label: 'Player ATK %',
+                    data: hpHistory.playerATK,
+                    borderColor: '#74c0fc',
+                    borderWidth: 1.5,
+                    borderDash: [2, 2],
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    yAxisID: 'yATK'
+                });
+            }
+            if (document.getElementById('toggleEnemyATK').checked) {
+                datasets.push({
+                    label: 'Enemy ATK %',
+                    data: hpHistory.enemyATK,
+                    borderColor: '#ffa8a8',
+                    borderWidth: 1.5,
+                    borderDash: [2, 2],
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    yAxisID: 'yATK'
+                });
+            }
+
+            // Skill uptime bars - check which toggles are active
+            let skillYLevel = -3;
+            const hasAnySkillToggle = document.querySelectorAll('[data-skill-toggle]:checked').length > 0;
+
+            // Player skill uptimes
+            const pToggles = document.querySelectorAll('[data-skill-toggle^="p_"]:checked');
+            let pIdx = 0;
+            pToggles.forEach(toggle => {
+                const skillName = toggle.dataset.skillToggle.slice(2);
+                const color = SKILL_COLORS_P[pIdx % SKILL_COLORS_P.length];
+                // Match color index to the skill's position in the toggle list
+                const allP = document.querySelectorAll('[data-skill-toggle^="p_"]');
+                let colorIdx = 0;
+                allP.forEach((t, i) => { if (t.dataset.skillToggle.slice(2) === skillName) colorIdx = i; });
+                const c = SKILL_COLORS_P[colorIdx % SKILL_COLORS_P.length];
+
+                const events = lastSkillEvents.player.filter(e => e.name === skillName);
+                const uptimeData = hpHistory.times.map(t => {
+                    const tNum = parseFloat(t);
+                    for (const ev of events) {
+                        if (tNum >= ev.start && tNum < ev.end) return skillYLevel;
+                    }
+                    return null;
+                });
+                datasets.push({
+                    label: `P: ${skillName}`,
+                    data: uptimeData,
+                    borderColor: c,
+                    backgroundColor: c + '60',
+                    borderWidth: 8,
+                    fill: false,
+                    stepped: 'before',
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                });
+                skillYLevel -= 3;
+                pIdx++;
+            });
+
+            // Enemy skill uptimes
+            const eToggles = document.querySelectorAll('[data-skill-toggle^="e_"]:checked');
+            let eIdx = 0;
+            eToggles.forEach(toggle => {
+                const skillName = toggle.dataset.skillToggle.slice(2);
+                const allE = document.querySelectorAll('[data-skill-toggle^="e_"]');
+                let colorIdx = 0;
+                allE.forEach((t, i) => { if (t.dataset.skillToggle.slice(2) === skillName) colorIdx = i; });
+                const c = SKILL_COLORS_E[colorIdx % SKILL_COLORS_E.length];
+
+                const events = lastSkillEvents.enemy.filter(e => e.name === skillName);
+                const uptimeData = hpHistory.times.map(t => {
+                    const tNum = parseFloat(t);
+                    for (const ev of events) {
+                        if (tNum >= ev.start && tNum < ev.end) return skillYLevel;
+                    }
+                    return null;
+                });
+                datasets.push({
+                    label: `E: ${skillName}`,
+                    data: uptimeData,
+                    borderColor: c,
+                    backgroundColor: c + '60',
+                    borderWidth: 8,
+                    fill: false,
+                    stepped: 'before',
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                });
+                skillYLevel -= 3;
+                eIdx++;
+            });
+
+            const showATK = document.getElementById('togglePlayerATK').checked || document.getElementById('toggleEnemyATK').checked;
+            const yMin = hasAnySkillToggle ? skillYLevel - 2 : 0;
 
             hpChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: hpHistory.times,
-                    datasets: [
-                        {
-                            label: 'Player HP %',
-                            data: hpHistory.playerHP,
-                            borderColor: '#51cf66',
-                            backgroundColor: 'rgba(81, 207, 102, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.1,
-                            pointRadius: 0
-                        },
-                        {
-                            label: 'Enemy HP %',
-                            data: hpHistory.enemyHP,
-                            borderColor: '#ff6b6b',
-                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.1,
-                            pointRadius: 0
-                        }
-                    ]
-                },
+                data: { labels: hpHistory.times, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { intersect: false, mode: 'index' },
                     plugins: {
-                        legend: { labels: { color: '#fff' } },
+                        legend: { labels: { color: '#fff', font: { size: 10 } } },
                         tooltip: {
+                            filter: item => item.parsed.y !== null,
                             callbacks: {
-                                label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%'
+                                label: ctx => {
+                                    if (ctx.dataset.label.includes('HP')) return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
+                                    if (ctx.dataset.label.includes('CDR')) return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
+                                    if (ctx.dataset.label.includes('ATK')) return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
+                                    return ctx.dataset.label;
+                                }
                             }
                         }
                     },
@@ -3560,11 +3784,22 @@
                             grid: { color: 'rgba(255,255,255,0.1)' }
                         },
                         y: {
-                            min: 0, max: 100,
+                            min: yMin, max: 100,
                             title: { display: true, text: 'HP %', color: '#aaa' },
-                            ticks: { color: '#aaa' },
+                            ticks: {
+                                color: '#aaa',
+                                callback: v => v >= 0 ? v : ''
+                            },
                             grid: { color: 'rgba(255,255,255,0.1)' }
-                        }
+                        },
+                        ...(showATK ? {
+                            yATK: {
+                                position: 'right',
+                                title: { display: true, text: 'ATK % of Base', color: '#74c0fc' },
+                                ticks: { color: '#74c0fc' },
+                                grid: { drawOnChartArea: false }
+                            }
+                        } : {})
                     }
                 }
             });
