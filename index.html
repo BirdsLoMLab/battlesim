@@ -2524,12 +2524,12 @@
                     if (!enemyAsc45 && time >= 45) { enemyAsc45 = true; enemy.atk *= 1.20; log('[Talent] Enemy Ascension: ATK +20%', 'buff'); }
                 }
                 // Rampage: HP < 20% triggers ATK +10%, ATK SPD +10%, Crit DMG +10%
-                if (player.talentRampage && !playerRampageTriggered && player.hp / player.maxHP < (player.relicSpore === 'nirvana' ? 0.40 : 0.20)) {
+                if (player.talentRampage && !playerRampageTriggered && player.hp / player.maxHP < 0.20) {
                     playerRampageTriggered = true;
                     player.atk *= 1.10; player.atkSpd *= 1.10; player.critDMG += 10;
                     log('[Talent] Player Rampage: ATK +10%, ATK SPD +10%, Crit DMG +10%', 'buff');
                 }
-                if (enemy.talentRampage && !enemyRampageTriggered && enemy.hp / enemy.maxHP < (enemy.relicSpore === 'nirvana' ? 0.40 : 0.20)) {
+                if (enemy.talentRampage && !enemyRampageTriggered && enemy.hp / enemy.maxHP < 0.20) {
                     enemyRampageTriggered = true;
                     enemy.atk *= 1.10; enemy.atkSpd *= 1.10; enemy.critDMG += 10;
                     log('[Talent] Enemy Rampage: ATK +10%, ATK SPD +10%, Crit DMG +10%', 'buff');
@@ -2557,11 +2557,11 @@
                     log(`[Talent] Enemy Gale Barrage: Combo DMG +5% (${enemyGaleStacks * 5}% total)`, 'buff');
                 }
                 // Endless Outburst: first time HP < 20%, Energy Regen +100% for 5s
-                if (player.talentEndlessOutburst && !playerOutburstTriggered && player.hp / player.maxHP < (player.relicSpore === 'nirvana' ? 0.40 : 0.20)) {
+                if (player.talentEndlessOutburst && !playerOutburstTriggered && player.hp / player.maxHP < 0.20) {
                     playerOutburstTriggered = true; playerOutburstUntil = time + 5;
                     log('[Talent] Player Endless Outburst: Energy Regen +100% for 5s', 'buff');
                 }
-                if (enemy.talentEndlessOutburst && !enemyOutburstTriggered && enemy.hp / enemy.maxHP < (enemy.relicSpore === 'nirvana' ? 0.40 : 0.20)) {
+                if (enemy.talentEndlessOutburst && !enemyOutburstTriggered && enemy.hp / enemy.maxHP < 0.20) {
                     enemyOutburstTriggered = true; enemyOutburstUntil = time + 5;
                     log('[Talent] Enemy Endless Outburst: Energy Regen +100% for 5s', 'buff');
                 }
