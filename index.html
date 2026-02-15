@@ -2410,6 +2410,39 @@
             let playerWarbringerATKMult = 1;
             let enemyWarbringerATKMult = 1;
 
+            // Shattering Axe flat ATK bonus (from DEF stat swap)
+            let playerShatterAxeATK = 0;
+            let enemyShatterAxeATK = 0;
+
+            // Hunter crit ATK boost multiplier (tracked for recalcATK)
+            let playerCritATKMult = 1;
+            let enemyCritATKMult = 1;
+
+            // Active skill ATK buff/debuff product (Easy Breezy -20% etc.)
+            let playerATKBuffMult = 1;
+            let enemyATKBuffMult = 1;
+
+            // Recalculate ATK from baseATK + all tracked modifiers
+            // baseATK absorbs one-time permanent multipliers (Ascension, Rampage)
+            function recalcPlayerATK() {
+                const potMult = playerPotentMult;
+                const fbPct = player.relicFlameBook ? player.flameBookStacks * (1 * potMult) / 100 : 0;
+                const tcPct = player.temporalStacks * 0.02;
+                const rsPct = player.affixRageSlash ? player.rageSlashStacks * player.affixRageSlashATK / 100 : 0;
+                player.atk = (player.baseATK * (1 + fbPct + tcPct + rsPct)
+                    * playerWarbringerATKMult * playerCritATKMult * playerATKBuffMult
+                    + playerShatterAxeATK + playerLunarATKBonus);
+            }
+            function recalcEnemyATK() {
+                const potMult = enemyPotentMult;
+                const fbPct = enemy.relicFlameBook ? enemy.flameBookStacks * (1 * potMult) / 100 : 0;
+                const tcPct = enemy.temporalStacks * 0.02;
+                const rsPct = enemy.affixRageSlash ? enemy.rageSlashStacks * enemy.affixRageSlashATK / 100 : 0;
+                enemy.atk = (enemy.baseATK * (1 + fbPct + tcPct + rsPct)
+                    * enemyWarbringerATKMult * enemyCritATKMult * enemyATKBuffMult
+                    + enemyShatterAxeATK + enemyLunarATKBonus);
+            }
+
             let playerNextRegen = 5;
             let playerNextShield = 10;
             let playerShieldExpires = 0;
@@ -2593,22 +2626,22 @@
                 if (player.talentAscension) {
                     if (!playerAsc15 && time >= 15) { playerAsc15 = true; player.atkSpd *= 1.15; log('[Talent] Player Ascension: ATK SPD +15%', 'buff'); }
                     if (!playerAsc30 && time >= 30) { playerAsc30 = true; player.critRate += 20; log('[Talent] Player Ascension: Crit Rate +20%', 'buff'); }
-                    if (!playerAsc45 && time >= 45) { playerAsc45 = true; player.atk *= 1.20; log('[Talent] Player Ascension: ATK +20%', 'buff'); }
+                    if (!playerAsc45 && time >= 45) { playerAsc45 = true; player.baseATK *= 1.20; recalcPlayerATK(); log('[Talent] Player Ascension: ATK +20%', 'buff'); }
                 }
                 if (enemy.talentAscension) {
                     if (!enemyAsc15 && time >= 15) { enemyAsc15 = true; enemy.atkSpd *= 1.15; log('[Talent] Enemy Ascension: ATK SPD +15%', 'buff'); }
                     if (!enemyAsc30 && time >= 30) { enemyAsc30 = true; enemy.critRate += 20; log('[Talent] Enemy Ascension: Crit Rate +20%', 'buff'); }
-                    if (!enemyAsc45 && time >= 45) { enemyAsc45 = true; enemy.atk *= 1.20; log('[Talent] Enemy Ascension: ATK +20%', 'buff'); }
+                    if (!enemyAsc45 && time >= 45) { enemyAsc45 = true; enemy.baseATK *= 1.20; recalcEnemyATK(); log('[Talent] Enemy Ascension: ATK +20%', 'buff'); }
                 }
                 // Rampage: HP < 20% triggers ATK +10%, ATK SPD +10%, Crit DMG +10%
                 if (player.talentRampage && !playerRampageTriggered && player.hp / player.maxHP < 0.20) {
                     playerRampageTriggered = true;
-                    player.atk *= 1.10; player.atkSpd *= 1.10; player.critDMG += 10;
+                    player.baseATK *= 1.10; recalcPlayerATK(); player.atkSpd *= 1.10; player.critDMG += 10;
                     log('[Talent] Player Rampage: ATK +10%, ATK SPD +10%, Crit DMG +10%', 'buff');
                 }
                 if (enemy.talentRampage && !enemyRampageTriggered && enemy.hp / enemy.maxHP < 0.20) {
                     enemyRampageTriggered = true;
-                    enemy.atk *= 1.10; enemy.atkSpd *= 1.10; enemy.critDMG += 10;
+                    enemy.baseATK *= 1.10; recalcEnemyATK(); enemy.atkSpd *= 1.10; enemy.critDMG += 10;
                     log('[Talent] Enemy Rampage: ATK +10%, ATK SPD +10%, Crit DMG +10%', 'buff');
                 }
                 // Eager Momentum: every 3s, Crit DMG +5% (up to 25%)
@@ -2648,24 +2681,24 @@
                 if (time >= playerFlameBookNext && player.flameBookStacks < 10) {
                     player.flameBookStacks++;
                     const pct = 1 * playerPotentMult;
-                    player.atk = player.baseATK * (1 + player.flameBookStacks * pct / 100 + player.temporalStacks * 0.02);
+                    recalcPlayerATK();
                     playerFlameBookNext = time + 1;
                     log(`[Relic] Player Flame Book: ATK +${pct.toFixed(1)}% (${(player.flameBookStacks * pct).toFixed(1)}% total)`, 'buff');
                 }
                 if (time >= enemyFlameBookNext && enemy.flameBookStacks < 10) {
                     enemy.flameBookStacks++;
                     const pct = 1 * enemyPotentMult;
-                    enemy.atk = enemy.baseATK * (1 + enemy.flameBookStacks * pct / 100 + enemy.temporalStacks * 0.02);
+                    recalcEnemyATK();
                     enemyFlameBookNext = time + 1;
                     log(`[Relic] Enemy Flame Book: ATK +${pct.toFixed(1)}% (${(enemy.flameBookStacks * pct).toFixed(1)}% total)`, 'buff');
                 }
 
                 // Hunter passive: expire crit ATK boost
                 if (playerCritATKBoostUntil > 0 && playerCritATKBoostUntil <= time) {
-                    player.atk /= 1.40; playerCritATKBoostUntil = 0;
+                    playerCritATKMult = 1; recalcPlayerATK(); playerCritATKBoostUntil = 0;
                 }
                 if (enemyCritATKBoostUntil > 0 && enemyCritATKBoostUntil <= time) {
-                    enemy.atk /= 1.40; enemyCritATKBoostUntil = 0;
+                    enemyCritATKMult = 1; recalcEnemyATK(); enemyCritATKBoostUntil = 0;
                 }
 
                 // Player attacks (skip basic ATK if stunned/disarmed; counters still work)
@@ -2701,7 +2734,7 @@
                         }
                         // Hunter passive 2: after crit, ATK +40% for 1s
                         if (isCrit && player.class === 'hunter') {
-                            if (playerCritATKBoostUntil <= time) player.atk *= 1.40;
+                            if (playerCritATKBoostUntil <= time) { playerCritATKMult = 1.40; recalcPlayerATK(); }
                             playerCritATKBoostUntil = time + 1;
                         }
 
@@ -2879,7 +2912,7 @@
                         }
                         // Hunter passive 2: after crit, ATK +40% for 1s
                         if (isCrit && enemy.class === 'hunter') {
-                            if (enemyCritATKBoostUntil <= time) enemy.atk *= 1.40;
+                            if (enemyCritATKBoostUntil <= time) { enemyCritATKMult = 1.40; recalcEnemyATK(); }
                             enemyCritATKBoostUntil = time + 1;
                         }
 
@@ -3158,8 +3191,9 @@
                     const bonusDEF = player.atk * 0.15;
                     const bonusATK = player.def * 0.75;
                     player.def += bonusDEF;
-                    player.atk += bonusATK;
-                    playerBuffs.push({ expires: time + buffDur, undo: () => { player.def -= bonusDEF; player.atk -= bonusATK; }});
+                    playerShatterAxeATK = bonusATK;
+                    recalcPlayerATK();
+                    playerBuffs.push({ expires: time + buffDur, undo: () => { player.def -= bonusDEF; playerShatterAxeATK = 0; recalcPlayerATK(); }});
                     let skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
                     const skillCrit = roll(player.skillCrit);
                     if (skillCrit) {
@@ -3192,8 +3226,9 @@
                     const bonusDEF = enemy.atk * 0.15;
                     const bonusATK = enemy.def * 0.75;
                     enemy.def += bonusDEF;
-                    enemy.atk += bonusATK;
-                    enemyBuffs.push({ expires: time + buffDur, undo: () => { enemy.def -= bonusDEF; enemy.atk -= bonusATK; }});
+                    enemyShatterAxeATK = bonusATK;
+                    recalcEnemyATK();
+                    enemyBuffs.push({ expires: time + buffDur, undo: () => { enemy.def -= bonusDEF; enemyShatterAxeATK = 0; recalcEnemyATK(); }});
                     let skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
                     const skillCrit = roll(enemy.skillCrit);
                     if (skillCrit) {
@@ -3297,7 +3332,7 @@
                         // --- Temporal Compression: ATK +2% per skill cast (max 30%) ---
                         if (attacker.talentTemporalCompression && attacker.temporalStacks < 15) {
                             attacker.temporalStacks++;
-                            attacker.atk = attacker.baseATK * (1 + attacker.temporalStacks * 0.02);
+                            if (attacker === player) recalcPlayerATK(); else recalcEnemyATK();
                             log(`  → ${who} Temporal Compression: ATK +2% (${attacker.temporalStacks * 2}% total)`, 'buff');
                         }
 
@@ -3358,8 +3393,12 @@
                                 attacker.atkSpd *= b.mult;
                                 (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.atkSpd /= b.mult; }});
                             } else if (b.stat === 'atk' && b.mult) {
-                                attacker.atk *= b.mult;
-                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.atk /= b.mult; }});
+                                if (attacker === player) { playerATKBuffMult *= b.mult; recalcPlayerATK(); }
+                                else { enemyATKBuffMult *= b.mult; recalcEnemyATK(); }
+                                (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => {
+                                    if (attacker === player) { playerATKBuffMult /= b.mult; recalcPlayerATK(); }
+                                    else { enemyATKBuffMult /= b.mult; recalcEnemyATK(); }
+                                }});
                             } else if (b.stat === 'palDMG' && b.addPercent) {
                                 attacker.palDMG += b.addPercent;
                                 (attacker === player ? playerBuffs : enemyBuffs).push({ expires, undo: () => { attacker.palDMG -= b.addPercent; }});
@@ -3402,8 +3441,12 @@
                                 defender.atkSpd *= d.mult;
                                 (isDefenderPlayer ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { defender.atkSpd /= d.mult; }});
                             } else if (d.stat === 'atk' && d.mult) {
-                                defender.atk *= d.mult;
-                                (isDefenderPlayer ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => { defender.atk /= d.mult; }});
+                                if (isDefenderPlayer) { playerATKBuffMult *= d.mult; recalcPlayerATK(); }
+                                else { enemyATKBuffMult *= d.mult; recalcEnemyATK(); }
+                                (isDefenderPlayer ? playerBuffs : enemyBuffs).push({ expires: time + dur, undo: () => {
+                                    if (isDefenderPlayer) { playerATKBuffMult /= d.mult; recalcPlayerATK(); }
+                                    else { enemyATKBuffMult /= d.mult; recalcEnemyATK(); }
+                                }});
                             } else if (d.stat === 'dmgTaken' && d.addPercent) {
                                 if (isDefenderPlayer) { playerDmgTakenUntil = time + dur; playerDmgTakenAdd = d.addPercent; }
                                 else { enemyDmgTakenUntil = time + dur; enemyDmgTakenAdd = d.addPercent; }
@@ -3460,7 +3503,7 @@
                         if (sk.immunity) effectDur = Math.max(effectDur, sk.immunity.duration);
                         if (sk.heal) effectDur = Math.max(effectDur, sk.heal.duration);
                         if (sk.shield) effectDur = Math.max(effectDur, sk.shield.duration);
-                        if (effectDur === 0) effectDur = 0.3;
+                        if (effectDur === 0) effectDur = 1.0; // minimum 1s for visibility on graph
                         const evts = attacker === player ? skillEvents.player : skillEvents.enemy;
                         evts.push({ name: sk.name, id: sk.id, start: time, end: time + effectDur });
                     }
@@ -3574,16 +3617,16 @@
                     const hpLostPct = (1 - player.hp / player.maxHP) * 100;
                     const newMult = 1 + Math.floor(hpLostPct / 10) * 0.03;
                     if (newMult !== playerWarbringerATKMult) {
-                        player.atk = player.atk / playerWarbringerATKMult * newMult;
                         playerWarbringerATKMult = newMult;
+                        recalcPlayerATK();
                     }
                 }
                 if (enemy.class === 'warbringer') {
                     const hpLostPct = (1 - enemy.hp / enemy.maxHP) * 100;
                     const newMult = 1 + Math.floor(hpLostPct / 10) * 0.03;
                     if (newMult !== enemyWarbringerATKMult) {
-                        enemy.atk = enemy.atk / enemyWarbringerATKMult * newMult;
                         enemyWarbringerATKMult = newMult;
+                        recalcEnemyATK();
                     }
                 }
 
@@ -3660,15 +3703,17 @@
                 // Activate buff every interval (starts at t=0)
                 if (playerAvianType === 'lunarbuff' && time >= playerNextLunar) {
                     playerNextLunar = time + player.avianInterval;
-                    // Remove previous buff if still active
+                    // Remove previous DEF buff if still active
                     if (playerLunarBuffUntil > time) {
                         player.def -= playerLunarDEFBonus;
-                        player.atk -= playerLunarATKBonus;
                     }
+                    // Compute ATK bonus from ATK without current lunar bonus
+                    playerLunarATKBonus = 0;
+                    recalcPlayerATK();
                     playerLunarDEFBonus = player.def * 0.60;
                     playerLunarATKBonus = player.atk * 0.10;
                     player.def += playerLunarDEFBonus;
-                    player.atk += playerLunarATKBonus;
+                    recalcPlayerATK();
                     playerLunarBuffUntil = time + 5;
                     playerLunarHitsNeeded = 10;
                     player.avianCount++;
@@ -3678,12 +3723,13 @@
                     enemyNextLunar = time + enemy.avianInterval;
                     if (enemyLunarBuffUntil > time) {
                         enemy.def -= enemyLunarDEFBonus;
-                        enemy.atk -= enemyLunarATKBonus;
                     }
+                    enemyLunarATKBonus = 0;
+                    recalcEnemyATK();
                     enemyLunarDEFBonus = enemy.def * 0.60;
                     enemyLunarATKBonus = enemy.atk * 0.10;
                     enemy.def += enemyLunarDEFBonus;
-                    enemy.atk += enemyLunarATKBonus;
+                    recalcEnemyATK();
                     enemyLunarBuffUntil = time + 5;
                     enemyLunarHitsNeeded = 10;
                     enemy.avianCount++;
@@ -3692,16 +3738,16 @@
                 // Expire Lunar Sprite buff
                 if (playerLunarBuffUntil > 0 && playerLunarBuffUntil <= time) {
                     player.def -= playerLunarDEFBonus;
-                    player.atk -= playerLunarATKBonus;
                     playerLunarDEFBonus = 0;
                     playerLunarATKBonus = 0;
+                    recalcPlayerATK();
                     playerLunarBuffUntil = 0;
                 }
                 if (enemyLunarBuffUntil > 0 && enemyLunarBuffUntil <= time) {
                     enemy.def -= enemyLunarDEFBonus;
-                    enemy.atk -= enemyLunarATKBonus;
                     enemyLunarDEFBonus = 0;
                     enemyLunarATKBonus = 0;
+                    recalcEnemyATK();
                     enemyLunarBuffUntil = 0;
                 }
 
@@ -3710,14 +3756,14 @@
                     playerNextRageSlash = time + 1;
                     if (player.hp > player.maxHP * 0.5 && player.rageSlashStacks < 30) {
                         player.rageSlashStacks++;
-                        player.atk = player.baseATK * (1 + player.rageSlashStacks * player.affixRageSlashATK / 100);
+                        recalcPlayerATK();
                     }
                 }
                 if (enemy.affixRageSlash && time >= enemyNextRageSlash) {
                     enemyNextRageSlash = time + 1;
                     if (enemy.hp > enemy.maxHP * 0.5 && enemy.rageSlashStacks < 30) {
                         enemy.rageSlashStacks++;
-                        enemy.atk = enemy.baseATK * (1 + enemy.rageSlashStacks * enemy.affixRageSlashATK / 100);
+                        recalcEnemyATK();
                     }
                 }
 
