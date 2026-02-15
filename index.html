@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 3.6</title>
+    <title>LoM Battle Simulator - Alpha 5.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -707,7 +707,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.5</span></h1>
+            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 5.0</span></h1>
             <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
         </div>
 
@@ -717,7 +717,7 @@
                 <button class="tab" onclick="showTab('import')">Import</button>
                 <button class="tab active" onclick="showTab('player')">Player</button>
                 <button class="tab" onclick="showTab('enemy')">Enemy</button>
-                <button class="tab" onclick="showTab('equipment')">Equipment</button>
+                <button class="tab" onclick="showTab('equipment')">Avians</button>
                 <button class="tab" onclick="showTab('pals')">Pals</button>
                 <button class="tab" onclick="showTab('talents')">Talents</button>
                 <button class="tab" onclick="showTab('relics')">Relics</button>
@@ -1257,7 +1257,7 @@
             <div id="tab-equipment" class="tab-content">
                 <div class="two-column">
                     <div>
-                        <div class="section-title">Player Equipment</div>
+                        <div class="section-title">Player Avians</div>
                         
                         <div class="subsection-title">Avian</div>
                         <div class="input-grid">
@@ -1267,6 +1267,8 @@
                                     <option value="none">None</option>
                                     <option value="bee">Honeypot Warrior (Bee)</option>
                                     <option value="deity" selected>Deity of Purrs</option>
+                                    <option value="penguin">Impulse Penguin</option>
+                                    <option value="lunar">Lunar Sprite</option>
                                 </select>
                             </div>
                             <div class="input-group">
@@ -1279,8 +1281,8 @@
                             </div>
                         </div>
                         <div class="info-box">
-                            <strong>Bee:</strong> 2.5% of player's Max HP every 5s | <strong>Deity:</strong> 4% of player's Current HP per 16 heals received<br>
-                            <small style="opacity:0.7">HP DMG values = % of player's own HP. No resistances apply. Cannot crit.</small>
+                            <strong>Bee:</strong> 2.5% Max HP DMG every 5s | <strong>Deity:</strong> 4% Cur HP DMG per 16 heals | <strong>Penguin:</strong> Counter DMG +5%/10s (5 stacks) | <strong>Lunar:</strong> DEF+60%, ATK+10% every 15s for 5s, heals 3.5% lost HP per 10 hits taken<br>
+                            <small style="opacity:0.7">Bee/Deity: HP DMG values use player's own HP. No resistances, cannot crit. Penguin/Lunar: buff-type avians.</small>
                         </div>
 
                         <div class="subsection-title">Avian Affixes</div>
@@ -1311,7 +1313,7 @@
                     </div>
 
                     <div>
-                        <div class="section-title">Enemy Equipment</div>
+                        <div class="section-title">Enemy Avians</div>
                         
                         <div class="subsection-title">Avian</div>
                         <div class="input-grid">
@@ -1321,6 +1323,8 @@
                                     <option value="none">None</option>
                                     <option value="bee">Honeypot Warrior (Bee)</option>
                                     <option value="deity" selected>Deity of Purrs</option>
+                                    <option value="penguin">Impulse Penguin</option>
+                                    <option value="lunar">Lunar Sprite</option>
                                 </select>
                             </div>
                             <div class="input-group">
@@ -1857,10 +1861,13 @@
 
         // Avian companions (from LOM_all_game_data.json)
         // Bee = timed HP% procs, Deity = heal-count triggered HP% procs
+        // Penguin = stacking counter DMG buff, Lunar = periodic DEF/ATK buff + lost HP heal
         const AVIANS = {
             none:    { name: 'None',             type: 'none' },
             bee:     { name: 'Honeypot Warrior', type: 'timed',     hpPercent: 2.5, interval: 5, isMaxHP: true  },
-            deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false }
+            deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false },
+            penguin: { name: 'Impulse Penguin',  type: 'counterbuff', counterPercent: 5, interval: 10, maxStacks: 5 },
+            lunar:   { name: 'Lunar Sprite',     type: 'lunarbuff', healPercent: 3.5, interval: 15, buffDur: 5, defBuff: 0.60, atkBuff: 0.10, hitThreshold: 10 }
         };
 
         // Active skills (up to 5 equippable per side)
@@ -1976,15 +1983,33 @@
         function onAvianChange(prefix) {
             const sel = document.getElementById(prefix + 'Avian').value;
             const avian = AVIANS[sel] || AVIANS.none;
+            const lblHP = document.querySelector(`label[for="${prefix}AvianHPPercent"]`);
+            const lblInt = document.querySelector(`label[for="${prefix}AvianInterval"]`);
             if (avian.type === 'timed') {
                 document.getElementById(prefix + 'AvianHPPercent').value = avian.hpPercent;
                 document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+                if (lblHP) lblHP.textContent = 'HP DMG (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
             } else if (avian.type === 'healcount') {
                 document.getElementById(prefix + 'AvianHPPercent').value = avian.hpPercent;
                 document.getElementById(prefix + 'AvianInterval').value = avian.healThreshold;
+                if (lblHP) lblHP.textContent = 'HP DMG (%)';
+                if (lblInt) lblInt.textContent = 'Heal Count';
+            } else if (avian.type === 'counterbuff') {
+                document.getElementById(prefix + 'AvianHPPercent').value = avian.counterPercent;
+                document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+                if (lblHP) lblHP.textContent = 'Counter DMG (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
+            } else if (avian.type === 'lunarbuff') {
+                document.getElementById(prefix + 'AvianHPPercent').value = avian.healPercent;
+                document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+                if (lblHP) lblHP.textContent = 'HP Recover (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
             } else {
                 document.getElementById(prefix + 'AvianHPPercent').value = 0;
                 document.getElementById(prefix + 'AvianInterval').value = 0;
+                if (lblHP) lblHP.textContent = 'HP DMG (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
             }
         }
 
@@ -2407,6 +2432,24 @@
             let playerNextAvian = (playerAvianType === 'timed' && player.avianHPPercent > 0) ? player.avianInterval : Infinity;
             let enemyNextAvian = (enemyAvianType === 'timed' && enemy.avianHPPercent > 0) ? enemy.avianInterval : Infinity;
 
+            // Impulse Penguin: counter DMG buff stacking
+            let playerPenguinStacks = 0;
+            let playerNextPenguin = playerAvianType === 'counterbuff' ? player.avianInterval : Infinity;
+            let enemyPenguinStacks = 0;
+            let enemyNextPenguin = enemyAvianType === 'counterbuff' ? enemy.avianInterval : Infinity;
+
+            // Lunar Sprite: periodic DEF/ATK buff + lost HP heal on hits taken
+            let playerLunarBuffUntil = 0;
+            let playerLunarDEFBonus = 0;
+            let playerLunarATKBonus = 0;
+            let playerLunarHitsNeeded = 10;
+            let playerNextLunar = playerAvianType === 'lunarbuff' ? 0 : Infinity; // fires at battle start
+            let enemyLunarBuffUntil = 0;
+            let enemyLunarDEFBonus = 0;
+            let enemyLunarATKBonus = 0;
+            let enemyLunarHitsNeeded = 10;
+            let enemyNextLunar = enemyAvianType === 'lunarbuff' ? 0 : Infinity;
+
             // No Speeding: reduce enemy active skill buff durations
             const playerNoSpeedingMult = enemy.affixNoSpeeding ? (1 - enemy.affixNoSpeedingReduce / 100) : 1;
             const enemyNoSpeedingMult = player.affixNoSpeeding ? (1 - player.affixNoSpeedingReduce / 100) : 1;
@@ -2683,6 +2726,19 @@
                             if (aoeRes.total > 0) log(`  ← Enemy AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
                         }
 
+                        // Lunar Sprite: track basic ATK hit on enemy (enemy is defender)
+                        if (enemyLunarBuffUntil > time) {
+                            enemyLunarHitsNeeded--;
+                            if (enemyLunarHitsNeeded <= 0) {
+                                enemyLunarHitsNeeded = 10;
+                                const lostHP = enemy.maxHP - enemy.hp;
+                                if (lostHP > 0) {
+                                    const healed = heal(enemy, lostHP * (enemy.avianHPPercent / 100));
+                                    if (healed > 0) log(`  [Avian] Enemy Lunar Sprite Heal: ${formatNumber(healed)} [${enemy.avianHPPercent}% lost HP]`, 'heal');
+                                }
+                            }
+                        }
+
                         const effectiveCombo = Math.max(0, player.combo - enemy.ignoreCombo);
                         if (roll(effectiveCombo)) {
                             const savedEnemyComboRES = enemy.comboRES;
@@ -2718,6 +2774,19 @@
                                 enemy.totalDamageDealt += aoeRes.total;
                                 enemy.dmgWarbringerAoE += aoeRes.total;
                                 if (aoeRes.total > 0) log(`  ← Enemy AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
+                            }
+
+                            // Lunar Sprite: track combo hit on enemy (enemy is defender)
+                            if (enemyLunarBuffUntil > time) {
+                                enemyLunarHitsNeeded--;
+                                if (enemyLunarHitsNeeded <= 0) {
+                                    enemyLunarHitsNeeded = 10;
+                                    const lostHP = enemy.maxHP - enemy.hp;
+                                    if (lostHP > 0) {
+                                        const healed = heal(enemy, lostHP * (enemy.avianHPPercent / 100));
+                                        if (healed > 0) log(`  [Avian] Enemy Lunar Sprite Heal: ${formatNumber(healed)} [${enemy.avianHPPercent}% lost HP]`, 'heal');
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -2834,6 +2903,19 @@
                             if (aoeRes.total > 0) log(`  ← Player AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
                         }
 
+                        // Lunar Sprite: track basic ATK hit on player (player is defender)
+                        if (playerLunarBuffUntil > time) {
+                            playerLunarHitsNeeded--;
+                            if (playerLunarHitsNeeded <= 0) {
+                                playerLunarHitsNeeded = 10;
+                                const lostHP = player.maxHP - player.hp;
+                                if (lostHP > 0) {
+                                    const healed = heal(player, lostHP * (player.avianHPPercent / 100));
+                                    if (healed > 0) log(`  [Avian] Player Lunar Sprite Heal: ${formatNumber(healed)} [${player.avianHPPercent}% lost HP]`, 'heal');
+                                }
+                            }
+                        }
+
                         const effectiveCombo = Math.max(0, enemy.combo - player.ignoreCombo);
                         if (roll(effectiveCombo)) {
                             const savedPlayerComboRES = player.comboRES;
@@ -2869,6 +2951,19 @@
                                 player.totalDamageDealt += aoeRes.total;
                                 player.dmgWarbringerAoE += aoeRes.total;
                                 if (aoeRes.total > 0) log(`  ← Player AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
+                            }
+
+                            // Lunar Sprite: track combo hit on player (player is defender)
+                            if (playerLunarBuffUntil > time) {
+                                playerLunarHitsNeeded--;
+                                if (playerLunarHitsNeeded <= 0) {
+                                    playerLunarHitsNeeded = 10;
+                                    const lostHP = player.maxHP - player.hp;
+                                    if (lostHP > 0) {
+                                        const healed = heal(player, lostHP * (player.avianHPPercent / 100));
+                                        if (healed > 0) log(`  [Avian] Player Lunar Sprite Heal: ${formatNumber(healed)} [${player.avianHPPercent}% lost HP]`, 'heal');
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -3539,6 +3634,75 @@
                     enemy.avianCount++;
                     const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
                     log(`Enemy Avian (Deity): ${formatNumber(avianResult.total)}${sn} [${enemy.avianHPPercent}% Cur HP]`, 'damage');
+                }
+
+                // Impulse Penguin (counterbuff): +counter DMG% every interval, up to maxStacks
+                if (playerAvianType === 'counterbuff' && time >= playerNextPenguin) {
+                    playerNextPenguin = time + player.avianInterval;
+                    if (playerPenguinStacks < 5) {
+                        playerPenguinStacks++;
+                        player.counterMult += player.avianHPPercent;
+                        player.avianCount++;
+                        log(`[Avian] Player Penguin: Counter DMG +${player.avianHPPercent}% (${(playerPenguinStacks * player.avianHPPercent).toFixed(1)}% total, ${playerPenguinStacks}/5)`, 'buff');
+                    }
+                }
+                if (enemyAvianType === 'counterbuff' && time >= enemyNextPenguin) {
+                    enemyNextPenguin = time + enemy.avianInterval;
+                    if (enemyPenguinStacks < 5) {
+                        enemyPenguinStacks++;
+                        enemy.counterMult += enemy.avianHPPercent;
+                        enemy.avianCount++;
+                        log(`[Avian] Enemy Penguin: Counter DMG +${enemy.avianHPPercent}% (${(enemyPenguinStacks * enemy.avianHPPercent).toFixed(1)}% total, ${enemyPenguinStacks}/5)`, 'buff');
+                    }
+                }
+
+                // Lunar Sprite (lunarbuff): periodic DEF/ATK buff + lost HP heal on hits taken
+                // Activate buff every interval (starts at t=0)
+                if (playerAvianType === 'lunarbuff' && time >= playerNextLunar) {
+                    playerNextLunar = time + player.avianInterval;
+                    // Remove previous buff if still active
+                    if (playerLunarBuffUntil > time) {
+                        player.def -= playerLunarDEFBonus;
+                        player.atk -= playerLunarATKBonus;
+                    }
+                    playerLunarDEFBonus = player.def * 0.60;
+                    playerLunarATKBonus = player.atk * 0.10;
+                    player.def += playerLunarDEFBonus;
+                    player.atk += playerLunarATKBonus;
+                    playerLunarBuffUntil = time + 5;
+                    playerLunarHitsNeeded = 10;
+                    player.avianCount++;
+                    log(`[Avian] Player Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
+                }
+                if (enemyAvianType === 'lunarbuff' && time >= enemyNextLunar) {
+                    enemyNextLunar = time + enemy.avianInterval;
+                    if (enemyLunarBuffUntil > time) {
+                        enemy.def -= enemyLunarDEFBonus;
+                        enemy.atk -= enemyLunarATKBonus;
+                    }
+                    enemyLunarDEFBonus = enemy.def * 0.60;
+                    enemyLunarATKBonus = enemy.atk * 0.10;
+                    enemy.def += enemyLunarDEFBonus;
+                    enemy.atk += enemyLunarATKBonus;
+                    enemyLunarBuffUntil = time + 5;
+                    enemyLunarHitsNeeded = 10;
+                    enemy.avianCount++;
+                    log(`[Avian] Enemy Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
+                }
+                // Expire Lunar Sprite buff
+                if (playerLunarBuffUntil > 0 && playerLunarBuffUntil <= time) {
+                    player.def -= playerLunarDEFBonus;
+                    player.atk -= playerLunarATKBonus;
+                    playerLunarDEFBonus = 0;
+                    playerLunarATKBonus = 0;
+                    playerLunarBuffUntil = 0;
+                }
+                if (enemyLunarBuffUntil > 0 && enemyLunarBuffUntil <= time) {
+                    enemy.def -= enemyLunarDEFBonus;
+                    enemy.atk -= enemyLunarATKBonus;
+                    enemyLunarDEFBonus = 0;
+                    enemyLunarATKBonus = 0;
+                    enemyLunarBuffUntil = 0;
                 }
 
                 // === RAGE SLASH: +ATK% per second when >50% HP, max 30 stacks ===
