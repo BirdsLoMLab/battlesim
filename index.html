@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 3.6</title>
+    <title>LoM Battle Simulator - Alpha 5.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -707,7 +707,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 3.5</span></h1>
+            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 5.0</span></h1>
             <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
         </div>
 
@@ -717,7 +717,7 @@
                 <button class="tab" onclick="showTab('import')">Import</button>
                 <button class="tab active" onclick="showTab('player')">Player</button>
                 <button class="tab" onclick="showTab('enemy')">Enemy</button>
-                <button class="tab" onclick="showTab('equipment')">Equipment</button>
+                <button class="tab" onclick="showTab('equipment')">Avians</button>
                 <button class="tab" onclick="showTab('pals')">Pals</button>
                 <button class="tab" onclick="showTab('talents')">Talents</button>
                 <button class="tab" onclick="showTab('relics')">Relics</button>
@@ -836,6 +836,7 @@
                         <select id="playerClass">
                             <option value="sage">Martial Sage</option>
                             <option value="hunter">Sacred Hunter</option>
+                            <option value="warbringer">Warbringer</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -1051,6 +1052,7 @@
                         <select id="enemyClass">
                             <option value="sage">Martial Sage</option>
                             <option value="hunter">Sacred Hunter</option>
+                            <option value="warbringer">Warbringer</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -1255,7 +1257,7 @@
             <div id="tab-equipment" class="tab-content">
                 <div class="two-column">
                     <div>
-                        <div class="section-title">Player Equipment</div>
+                        <div class="section-title">Player Avians</div>
                         
                         <div class="subsection-title">Avian</div>
                         <div class="input-grid">
@@ -1265,6 +1267,8 @@
                                     <option value="none">None</option>
                                     <option value="bee">Honeypot Warrior (Bee)</option>
                                     <option value="deity" selected>Deity of Purrs</option>
+                                    <option value="penguin">Impulse Penguin</option>
+                                    <option value="lunar">Lunar Sprite</option>
                                 </select>
                             </div>
                             <div class="input-group">
@@ -1277,8 +1281,8 @@
                             </div>
                         </div>
                         <div class="info-box">
-                            <strong>Bee:</strong> 2.5% of player's Max HP every 5s | <strong>Deity:</strong> 4% of player's Current HP per 16 heals received<br>
-                            <small style="opacity:0.7">HP DMG values = % of player's own HP. No resistances apply. Cannot crit.</small>
+                            <strong>Bee:</strong> 2.5% Max HP DMG every 5s | <strong>Deity:</strong> 4% Cur HP DMG per 16 heals | <strong>Penguin:</strong> Counter DMG +5%/10s (5 stacks) | <strong>Lunar:</strong> DEF+60%, ATK+10% every 15s for 5s, heals 3.5% lost HP per 10 hits taken<br>
+                            <small style="opacity:0.7">Bee/Deity: HP DMG values use player's own HP. No resistances, cannot crit. Penguin/Lunar: buff-type avians.</small>
                         </div>
 
                         <div class="subsection-title">Avian Affixes</div>
@@ -1309,7 +1313,7 @@
                     </div>
 
                     <div>
-                        <div class="section-title">Enemy Equipment</div>
+                        <div class="section-title">Enemy Avians</div>
                         
                         <div class="subsection-title">Avian</div>
                         <div class="input-grid">
@@ -1319,6 +1323,8 @@
                                     <option value="none">None</option>
                                     <option value="bee">Honeypot Warrior (Bee)</option>
                                     <option value="deity" selected>Deity of Purrs</option>
+                                    <option value="penguin">Impulse Penguin</option>
+                                    <option value="lunar">Lunar Sprite</option>
                                 </select>
                             </div>
                             <div class="input-group">
@@ -1855,10 +1861,13 @@
 
         // Avian companions (from LOM_all_game_data.json)
         // Bee = timed HP% procs, Deity = heal-count triggered HP% procs
+        // Penguin = stacking counter DMG buff, Lunar = periodic DEF/ATK buff + lost HP heal
         const AVIANS = {
             none:    { name: 'None',             type: 'none' },
             bee:     { name: 'Honeypot Warrior', type: 'timed',     hpPercent: 2.5, interval: 5, isMaxHP: true  },
-            deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false }
+            deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false },
+            penguin: { name: 'Impulse Penguin',  type: 'counterbuff', counterPercent: 5, interval: 10, maxStacks: 5 },
+            lunar:   { name: 'Lunar Sprite',     type: 'lunarbuff', healPercent: 3.5, interval: 15, buffDur: 5, defBuff: 0.60, atkBuff: 0.10, hitThreshold: 10 }
         };
 
         // Active skills (up to 5 equippable per side)
@@ -1974,15 +1983,33 @@
         function onAvianChange(prefix) {
             const sel = document.getElementById(prefix + 'Avian').value;
             const avian = AVIANS[sel] || AVIANS.none;
+            const lblHP = document.querySelector(`label[for="${prefix}AvianHPPercent"]`);
+            const lblInt = document.querySelector(`label[for="${prefix}AvianInterval"]`);
             if (avian.type === 'timed') {
                 document.getElementById(prefix + 'AvianHPPercent').value = avian.hpPercent;
                 document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+                if (lblHP) lblHP.textContent = 'HP DMG (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
             } else if (avian.type === 'healcount') {
                 document.getElementById(prefix + 'AvianHPPercent').value = avian.hpPercent;
                 document.getElementById(prefix + 'AvianInterval').value = avian.healThreshold;
+                if (lblHP) lblHP.textContent = 'HP DMG (%)';
+                if (lblInt) lblInt.textContent = 'Heal Count';
+            } else if (avian.type === 'counterbuff') {
+                document.getElementById(prefix + 'AvianHPPercent').value = avian.counterPercent;
+                document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+                if (lblHP) lblHP.textContent = 'Counter DMG (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
+            } else if (avian.type === 'lunarbuff') {
+                document.getElementById(prefix + 'AvianHPPercent').value = avian.healPercent;
+                document.getElementById(prefix + 'AvianInterval').value = avian.interval;
+                if (lblHP) lblHP.textContent = 'HP Recover (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
             } else {
                 document.getElementById(prefix + 'AvianHPPercent').value = 0;
                 document.getElementById(prefix + 'AvianInterval').value = 0;
+                if (lblHP) lblHP.textContent = 'HP DMG (%)';
+                if (lblInt) lblInt.textContent = 'Interval (s)';
             }
         }
 
@@ -2170,6 +2197,7 @@
                 dmgCombo: 0,
                 dmgCounter: 0,
                 dmgSageClassSkillHP: 0,
+                dmgWarbringerAoE: 0,
                 dmgPunchCounter: 0,
                 dmgClassSkill: 0,
                 dmgActiveSkills: 0,
@@ -2378,6 +2406,10 @@
             let playerCritATKBoostUntil = 0; // Hunter passive: ATK +40% after crit
             let enemyCritATKBoostUntil = 0;
 
+            // Warbringer passive 2: ATK scales with HP loss (3% per 10% lost)
+            let playerWarbringerATKMult = 1;
+            let enemyWarbringerATKMult = 1;
+
             let playerNextRegen = 5;
             let playerNextShield = 10;
             let playerShieldExpires = 0;
@@ -2399,6 +2431,24 @@
             // Deity (healcount): interval = heal count threshold
             let playerNextAvian = (playerAvianType === 'timed' && player.avianHPPercent > 0) ? player.avianInterval : Infinity;
             let enemyNextAvian = (enemyAvianType === 'timed' && enemy.avianHPPercent > 0) ? enemy.avianInterval : Infinity;
+
+            // Impulse Penguin: counter DMG buff stacking
+            let playerPenguinStacks = 0;
+            let playerNextPenguin = playerAvianType === 'counterbuff' ? player.avianInterval : Infinity;
+            let enemyPenguinStacks = 0;
+            let enemyNextPenguin = enemyAvianType === 'counterbuff' ? enemy.avianInterval : Infinity;
+
+            // Lunar Sprite: periodic DEF/ATK buff + lost HP heal on hits taken
+            let playerLunarBuffUntil = 0;
+            let playerLunarDEFBonus = 0;
+            let playerLunarATKBonus = 0;
+            let playerLunarHitsNeeded = 10;
+            let playerNextLunar = playerAvianType === 'lunarbuff' ? 0 : Infinity; // fires at battle start
+            let enemyLunarBuffUntil = 0;
+            let enemyLunarDEFBonus = 0;
+            let enemyLunarATKBonus = 0;
+            let enemyLunarHitsNeeded = 10;
+            let enemyNextLunar = enemyAvianType === 'lunarbuff' ? 0 : Infinity;
 
             // No Speeding: reduce enemy active skill buff durations
             const playerNoSpeedingMult = enemy.affixNoSpeeding ? (1 - enemy.affixNoSpeedingReduce / 100) : 1;
@@ -2662,6 +2712,33 @@
                             log(`  → Terminal Strike! Enemy wounded (heal -50% for 1s)`, 'damage');
                         }
 
+                        // Warbringer passive 1: AoE counter (20%) when hit by basic ATK
+                        if (enemy.class === 'warbringer') {
+                            const savedCRES = player.counterRES;
+                            if (playerCounterRESDebuff > time) player.counterRES = clamp(player.counterRES - 40, -100, 80);
+                            let aoeDmg = calcCounterDamage(enemy, player, pvpFactor) * 0.20;
+                            player.counterRES = savedCRES;
+                            const aoeCrit = roll(enemy.critRate - player.ignoreCrit);
+                            if (aoeCrit) aoeDmg = applyCrit(aoeDmg, enemy, player);
+                            const aoeRes = dealDamage(player, aoeDmg, true);
+                            enemy.totalDamageDealt += aoeRes.total;
+                            enemy.dmgWarbringerAoE += aoeRes.total;
+                            if (aoeRes.total > 0) log(`  ← Enemy AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
+                        }
+
+                        // Lunar Sprite: track basic ATK hit on enemy (enemy is defender)
+                        if (enemyLunarBuffUntil > time) {
+                            enemyLunarHitsNeeded--;
+                            if (enemyLunarHitsNeeded <= 0) {
+                                enemyLunarHitsNeeded = 10;
+                                const lostHP = enemy.maxHP - enemy.hp;
+                                if (lostHP > 0) {
+                                    const healed = heal(enemy, lostHP * (enemy.avianHPPercent / 100));
+                                    if (healed > 0) log(`  [Avian] Enemy Lunar Sprite Heal: ${formatNumber(healed)} [${enemy.avianHPPercent}% lost HP]`, 'heal');
+                                }
+                            }
+                        }
+
                         const effectiveCombo = Math.max(0, player.combo - enemy.ignoreCombo);
                         if (roll(effectiveCombo)) {
                             const savedEnemyComboRES = enemy.comboRES;
@@ -2683,6 +2760,33 @@
                             if (player.talentComboHealing > 0 && player.comboCount % 5 === 0) {
                                 const healed = heal(player, player.maxHP * (player.talentComboHealing / 100));
                                 if (healed > 0) log(`  → Player Combo Heal: ${formatNumber(healed)}`, 'heal');
+                            }
+
+                            // Warbringer passive 1: AoE counter (20%) when hit by combo
+                            if (enemy.class === 'warbringer') {
+                                const savedCRES = player.counterRES;
+                                if (playerCounterRESDebuff > time) player.counterRES = clamp(player.counterRES - 40, -100, 80);
+                                let aoeDmg = calcCounterDamage(enemy, player, pvpFactor) * 0.20;
+                                player.counterRES = savedCRES;
+                                const aoeCrit = roll(enemy.critRate - player.ignoreCrit);
+                                if (aoeCrit) aoeDmg = applyCrit(aoeDmg, enemy, player);
+                                const aoeRes = dealDamage(player, aoeDmg, true);
+                                enemy.totalDamageDealt += aoeRes.total;
+                                enemy.dmgWarbringerAoE += aoeRes.total;
+                                if (aoeRes.total > 0) log(`  ← Enemy AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
+                            }
+
+                            // Lunar Sprite: track combo hit on enemy (enemy is defender)
+                            if (enemyLunarBuffUntil > time) {
+                                enemyLunarHitsNeeded--;
+                                if (enemyLunarHitsNeeded <= 0) {
+                                    enemyLunarHitsNeeded = 10;
+                                    const lostHP = enemy.maxHP - enemy.hp;
+                                    if (lostHP > 0) {
+                                        const healed = heal(enemy, lostHP * (enemy.avianHPPercent / 100));
+                                        if (healed > 0) log(`  [Avian] Enemy Lunar Sprite Heal: ${formatNumber(healed)} [${enemy.avianHPPercent}% lost HP]`, 'heal');
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -2785,6 +2889,33 @@
                             log(`  → Terminal Strike! Player wounded (heal -50% for 1s)`, 'damage');
                         }
 
+                        // Warbringer passive 1: AoE counter (20%) when hit by basic ATK
+                        if (player.class === 'warbringer') {
+                            const savedCRES = enemy.counterRES;
+                            if (enemyCounterRESDebuff > time) enemy.counterRES = clamp(enemy.counterRES - 40, -100, 80);
+                            let aoeDmg = calcCounterDamage(player, enemy, pvpFactor) * 0.20;
+                            enemy.counterRES = savedCRES;
+                            const aoeCrit = roll(player.critRate - enemy.ignoreCrit);
+                            if (aoeCrit) aoeDmg = applyCrit(aoeDmg, player, enemy);
+                            const aoeRes = dealDamage(enemy, aoeDmg);
+                            player.totalDamageDealt += aoeRes.total;
+                            player.dmgWarbringerAoE += aoeRes.total;
+                            if (aoeRes.total > 0) log(`  ← Player AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
+                        }
+
+                        // Lunar Sprite: track basic ATK hit on player (player is defender)
+                        if (playerLunarBuffUntil > time) {
+                            playerLunarHitsNeeded--;
+                            if (playerLunarHitsNeeded <= 0) {
+                                playerLunarHitsNeeded = 10;
+                                const lostHP = player.maxHP - player.hp;
+                                if (lostHP > 0) {
+                                    const healed = heal(player, lostHP * (player.avianHPPercent / 100));
+                                    if (healed > 0) log(`  [Avian] Player Lunar Sprite Heal: ${formatNumber(healed)} [${player.avianHPPercent}% lost HP]`, 'heal');
+                                }
+                            }
+                        }
+
                         const effectiveCombo = Math.max(0, enemy.combo - player.ignoreCombo);
                         if (roll(effectiveCombo)) {
                             const savedPlayerComboRES = player.comboRES;
@@ -2806,6 +2937,33 @@
                             if (enemy.talentComboHealing > 0 && enemy.comboCount % 5 === 0) {
                                 const healed = heal(enemy, enemy.maxHP * (enemy.talentComboHealing / 100));
                                 if (healed > 0) log(`  → Enemy Combo Heal: ${formatNumber(healed)}`, 'heal');
+                            }
+
+                            // Warbringer passive 1: AoE counter (20%) when hit by combo
+                            if (player.class === 'warbringer') {
+                                const savedCRES = enemy.counterRES;
+                                if (enemyCounterRESDebuff > time) enemy.counterRES = clamp(enemy.counterRES - 40, -100, 80);
+                                let aoeDmg = calcCounterDamage(player, enemy, pvpFactor) * 0.20;
+                                enemy.counterRES = savedCRES;
+                                const aoeCrit = roll(player.critRate - enemy.ignoreCrit);
+                                if (aoeCrit) aoeDmg = applyCrit(aoeDmg, player, enemy);
+                                const aoeRes = dealDamage(enemy, aoeDmg);
+                                player.totalDamageDealt += aoeRes.total;
+                                player.dmgWarbringerAoE += aoeRes.total;
+                                if (aoeRes.total > 0) log(`  ← Player AoE Counter: ${formatNumber(aoeRes.total)}${aoeCrit ? ' CRIT!' : ''} [20%]`, 'damage');
+                            }
+
+                            // Lunar Sprite: track combo hit on player (player is defender)
+                            if (playerLunarBuffUntil > time) {
+                                playerLunarHitsNeeded--;
+                                if (playerLunarHitsNeeded <= 0) {
+                                    playerLunarHitsNeeded = 10;
+                                    const lostHP = player.maxHP - player.hp;
+                                    if (lostHP > 0) {
+                                        const healed = heal(player, lostHP * (player.avianHPPercent / 100));
+                                        if (healed > 0) log(`  [Avian] Player Lunar Sprite Heal: ${formatNumber(healed)} [${player.avianHPPercent}% lost HP]`, 'heal');
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -2978,6 +3136,76 @@
                     const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
                     log(`Enemy PIERCING BONEFORGE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Combo RES -40% ${buffDur.toFixed(1)}s, Energy Lock 4s]`, 'skill');
                     skillEvents.enemy.push({ name: 'Piercing Boneforge', id: 'class', start: time, end: time + buffDur });
+                    if (enemy.affixWindTear) {
+                        const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
+                        const wtResult = dealDamage(player, wtDmg, true);
+                        enemy.totalDamageDealt += wtResult.total;
+                        enemy.dmgWindTear += wtResult.total;
+                        enemy.windTearCount++;
+                        log(`  → Enemy Wind Tear: ${formatNumber(wtResult.total)} [${enemy.affixWindTearHP}% Cur HP]`, 'damage');
+                    }
+                }
+
+                // Warbringer: Shattering Axe (player)
+                if (player.class === 'warbringer' && time >= playerClassSkillCD) {
+                    const pCdMult = (1 - player.cdr / 100) * (playerOutburstUntil > time ? 0.5 : 1);
+                    playerClassSkillCD = time + Math.max(1, 15 * pCdMult);
+                    player.classSkillCount++;
+                    const buffDur = 8 * playerNoSpeedingMult * (enemy.relicSpore === 'thorny' ? 0.80 : 1);
+                    // Counter RES -40% debuff on enemy (same mechanic as Blades Reunion)
+                    enemyCounterRESDebuff = time + buffDur;
+                    // Stat swap buff: +0.15 DEF per ATK, +0.75 ATK per DEF (snapshot)
+                    const bonusDEF = player.atk * 0.15;
+                    const bonusATK = player.def * 0.75;
+                    player.def += bonusDEF;
+                    player.atk += bonusATK;
+                    playerBuffs.push({ expires: time + buffDur, undo: () => { player.def -= bonusDEF; player.atk -= bonusATK; }});
+                    let skillDmg = calcSkillDamage(player, enemy, 12580, pvpFactor);
+                    const skillCrit = roll(player.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, player.skillCritDMG / enemy.critRES);
+                        skillDmg *= skillCritMult;
+                    }
+                    const skillResult = dealDamage(enemy, skillDmg);
+                    player.totalDamageDealt += skillResult.total;
+                    player.dmgClassSkill += skillResult.total;
+                    const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
+                    log(`Player SHATTERING AXE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s, DEF+${formatNumber(bonusDEF)} ATK+${formatNumber(bonusATK)} ${buffDur.toFixed(1)}s]`, 'skill');
+                    skillEvents.player.push({ name: 'Shattering Axe', id: 'class', start: time, end: time + buffDur });
+                    if (player.affixWindTear) {
+                        const wtDmg = calcHPDamage(player, enemy, enemy.hp, player.affixWindTearHP, false, pvpFactor);
+                        const wtResult = dealDamage(enemy, wtDmg);
+                        player.totalDamageDealt += wtResult.total;
+                        player.dmgWindTear += wtResult.total;
+                        player.windTearCount++;
+                        log(`  → Player Wind Tear: ${formatNumber(wtResult.total)} [${player.affixWindTearHP}% Cur HP]`, 'damage');
+                    }
+                }
+
+                // Warbringer: Shattering Axe (enemy)
+                if (enemy.class === 'warbringer' && time >= enemyClassSkillCD) {
+                    const eCdMult = (1 - enemy.cdr / 100) * (enemyOutburstUntil > time ? 0.5 : 1);
+                    enemyClassSkillCD = time + Math.max(1, 15 * eCdMult);
+                    enemy.classSkillCount++;
+                    const buffDur = 8 * enemyNoSpeedingMult * (player.relicSpore === 'thorny' ? 0.80 : 1);
+                    playerCounterRESDebuff = time + buffDur;
+                    const bonusDEF = enemy.atk * 0.15;
+                    const bonusATK = enemy.def * 0.75;
+                    enemy.def += bonusDEF;
+                    enemy.atk += bonusATK;
+                    enemyBuffs.push({ expires: time + buffDur, undo: () => { enemy.def -= bonusDEF; enemy.atk -= bonusATK; }});
+                    let skillDmg = calcSkillDamage(enemy, player, 12580, pvpFactor);
+                    const skillCrit = roll(enemy.skillCrit);
+                    if (skillCrit) {
+                        const skillCritMult = Math.max(1.5, enemy.skillCritDMG / player.critRES);
+                        skillDmg *= skillCritMult;
+                    }
+                    const skillResult = dealDamage(player, skillDmg, true);
+                    enemy.totalDamageDealt += skillResult.total;
+                    enemy.dmgClassSkill += skillResult.total;
+                    const sn = skillResult.shielded > 0 ? ` (${formatNumber(skillResult.shielded)} blocked)` : '';
+                    log(`Enemy SHATTERING AXE: ${formatNumber(skillResult.total)}${sn}${skillCrit ? ' CRIT!' : ''} [Counter RES -40% ${buffDur.toFixed(1)}s, DEF+${formatNumber(bonusDEF)} ATK+${formatNumber(bonusATK)} ${buffDur.toFixed(1)}s]`, 'skill');
+                    skillEvents.enemy.push({ name: 'Shattering Axe', id: 'class', start: time, end: time + buffDur });
                     if (enemy.affixWindTear) {
                         const wtDmg = calcHPDamage(enemy, player, player.hp, enemy.affixWindTearHP, false, pvpFactor);
                         const wtResult = dealDamage(player, wtDmg, true);
@@ -3341,6 +3569,24 @@
                     enemy.shield = 0;
                 }
 
+                // Warbringer passive 2: ATK scales with HP loss (3% per 10% HP lost)
+                if (player.class === 'warbringer') {
+                    const hpLostPct = (1 - player.hp / player.maxHP) * 100;
+                    const newMult = 1 + Math.floor(hpLostPct / 10) * 0.03;
+                    if (newMult !== playerWarbringerATKMult) {
+                        player.atk = player.atk / playerWarbringerATKMult * newMult;
+                        playerWarbringerATKMult = newMult;
+                    }
+                }
+                if (enemy.class === 'warbringer') {
+                    const hpLostPct = (1 - enemy.hp / enemy.maxHP) * 100;
+                    const newMult = 1 + Math.floor(hpLostPct / 10) * 0.03;
+                    if (newMult !== enemyWarbringerATKMult) {
+                        enemy.atk = enemy.atk / enemyWarbringerATKMult * newMult;
+                        enemyWarbringerATKMult = newMult;
+                    }
+                }
+
                 // === AVIAN DAMAGE ===
                 // Bee (timed): fires every N seconds
                 if (playerAvianType === 'timed' && player.avianHPPercent > 0 && time >= playerNextAvian) {
@@ -3388,6 +3634,75 @@
                     enemy.avianCount++;
                     const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
                     log(`Enemy Avian (Deity): ${formatNumber(avianResult.total)}${sn} [${enemy.avianHPPercent}% Cur HP]`, 'damage');
+                }
+
+                // Impulse Penguin (counterbuff): +counter DMG% every interval, up to maxStacks
+                if (playerAvianType === 'counterbuff' && time >= playerNextPenguin) {
+                    playerNextPenguin = time + player.avianInterval;
+                    if (playerPenguinStacks < 5) {
+                        playerPenguinStacks++;
+                        player.counterMult += player.avianHPPercent;
+                        player.avianCount++;
+                        log(`[Avian] Player Penguin: Counter DMG +${player.avianHPPercent}% (${(playerPenguinStacks * player.avianHPPercent).toFixed(1)}% total, ${playerPenguinStacks}/5)`, 'buff');
+                    }
+                }
+                if (enemyAvianType === 'counterbuff' && time >= enemyNextPenguin) {
+                    enemyNextPenguin = time + enemy.avianInterval;
+                    if (enemyPenguinStacks < 5) {
+                        enemyPenguinStacks++;
+                        enemy.counterMult += enemy.avianHPPercent;
+                        enemy.avianCount++;
+                        log(`[Avian] Enemy Penguin: Counter DMG +${enemy.avianHPPercent}% (${(enemyPenguinStacks * enemy.avianHPPercent).toFixed(1)}% total, ${enemyPenguinStacks}/5)`, 'buff');
+                    }
+                }
+
+                // Lunar Sprite (lunarbuff): periodic DEF/ATK buff + lost HP heal on hits taken
+                // Activate buff every interval (starts at t=0)
+                if (playerAvianType === 'lunarbuff' && time >= playerNextLunar) {
+                    playerNextLunar = time + player.avianInterval;
+                    // Remove previous buff if still active
+                    if (playerLunarBuffUntil > time) {
+                        player.def -= playerLunarDEFBonus;
+                        player.atk -= playerLunarATKBonus;
+                    }
+                    playerLunarDEFBonus = player.def * 0.60;
+                    playerLunarATKBonus = player.atk * 0.10;
+                    player.def += playerLunarDEFBonus;
+                    player.atk += playerLunarATKBonus;
+                    playerLunarBuffUntil = time + 5;
+                    playerLunarHitsNeeded = 10;
+                    player.avianCount++;
+                    log(`[Avian] Player Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
+                }
+                if (enemyAvianType === 'lunarbuff' && time >= enemyNextLunar) {
+                    enemyNextLunar = time + enemy.avianInterval;
+                    if (enemyLunarBuffUntil > time) {
+                        enemy.def -= enemyLunarDEFBonus;
+                        enemy.atk -= enemyLunarATKBonus;
+                    }
+                    enemyLunarDEFBonus = enemy.def * 0.60;
+                    enemyLunarATKBonus = enemy.atk * 0.10;
+                    enemy.def += enemyLunarDEFBonus;
+                    enemy.atk += enemyLunarATKBonus;
+                    enemyLunarBuffUntil = time + 5;
+                    enemyLunarHitsNeeded = 10;
+                    enemy.avianCount++;
+                    log(`[Avian] Enemy Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
+                }
+                // Expire Lunar Sprite buff
+                if (playerLunarBuffUntil > 0 && playerLunarBuffUntil <= time) {
+                    player.def -= playerLunarDEFBonus;
+                    player.atk -= playerLunarATKBonus;
+                    playerLunarDEFBonus = 0;
+                    playerLunarATKBonus = 0;
+                    playerLunarBuffUntil = 0;
+                }
+                if (enemyLunarBuffUntil > 0 && enemyLunarBuffUntil <= time) {
+                    enemy.def -= enemyLunarDEFBonus;
+                    enemy.atk -= enemyLunarATKBonus;
+                    enemyLunarDEFBonus = 0;
+                    enemyLunarATKBonus = 0;
+                    enemyLunarBuffUntil = 0;
                 }
 
                 // === RAGE SLASH: +ATK% per second when >50% HP, max 30 stacks ===
@@ -3469,7 +3784,8 @@
 
             // Per-source damage breakdown
             function buildBreakdown(who, stats) {
-                const classSkillName = stats.class === 'hunter' ? 'Piercing Boneforge' : 'Blades Reunion';
+                const classSkillName = stats.class === 'hunter' ? 'Piercing Boneforge' :
+                                      stats.class === 'warbringer' ? 'Shattering Axe' : 'Blades Reunion';
                 const sources = [
                     ['Basic ATK', stats.dmgBasicATK],
                     ['Combo', stats.dmgCombo],
@@ -3477,6 +3793,7 @@
                     [stats.class === 'sage' ? 'Sage Class Skill HP' : 'Hunter HP (1% Cur)', stats.dmgSageClassSkillHP],
                     ['Punch Counter', stats.dmgPunchCounter],
                     [`Class Skill (${classSkillName})`, stats.dmgClassSkill],
+                    ['Warbringer AoE Counter', stats.dmgWarbringerAoE],
                     ['Active Skills', stats.dmgActiveSkills],
                     ['Skill DoTs', stats.dmgDot],
                     ['HP% DoTs', stats.dmgHpDot],
@@ -4124,6 +4441,7 @@
         const classMapping = {
             'Martial Sage': 'sage',
             'Sacred Hunter': 'hunter',
+            'Warbringer': 'warbringer',
             'Plume Monarch': 'archer',
             'Flame Wizard': 'mage',
             'Crystal Sage': 'crystal',
