@@ -3472,11 +3472,11 @@
                             log(`  → ${who} IMMUNE for ${sk.immunity.duration}s`, 'skill');
                         }
 
-                        // --- Heal (Nature's Renewal: 30% over 5s = heal proc every 0.1s) ---
+                        // --- Heal (Nature's Renewal: 30% over 5s = heal proc every 0.05s) ---
                         if (sk.heal) {
                             sk._healEnd = time + sk.heal.duration;
-                            sk._healNext = time + 0.1;
-                            sk._healPerTick = attacker.maxHP * (sk.heal.percent / 100) / (sk.heal.duration / 0.1);
+                            sk._healNext = time + 0.05;
+                            sk._healPerTick = attacker.maxHP * (sk.heal.percent / 100) / (sk.heal.duration / 0.05);
                         }
 
                         // --- Shield (Shroom Shield) ---
@@ -3553,7 +3553,7 @@
                         }
                         // Tick Heal (Nature's Renewal)
                         if (sk.heal && sk._healEnd > time && sk._healNext <= time) {
-                            sk._healNext = time + 0.1;
+                            sk._healNext = time + 0.05;
                             const healed = heal(attacker, sk._healPerTick);
                             if (healed > 0) log(`${who} ${sk.name} heal: ${formatNumber(healed)}`, 'heal');
                         }
