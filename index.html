@@ -1784,6 +1784,8 @@
                         <label style="color:#74c0fc;cursor:pointer;"><input type="checkbox" id="togglePlayerATK" onchange="renderHPChart()"> P: ATK%</label>
                         <label style="color:#ff6b6b;cursor:pointer;"><input type="checkbox" id="toggleEnemyCDR" onchange="renderHPChart()"> E: CDR</label>
                         <label style="color:#ffa8a8;cursor:pointer;"><input type="checkbox" id="toggleEnemyATK" onchange="renderHPChart()"> E: ATK%</label>
+                        <label style="color:#ffd43b;cursor:pointer;"><input type="checkbox" id="togglePlayerAvian" onchange="renderHPChart()"> P: Avian</label>
+                        <label style="color:#f08c00;cursor:pointer;"><input type="checkbox" id="toggleEnemyAvian" onchange="renderHPChart()"> E: Avian</label>
                         <span id="skillTogglesPlayer" style="display:contents;"></span>
                         <span id="skillTogglesEnemy" style="display:contents;"></span>
                     </div>
@@ -2575,10 +2577,13 @@
 
             const hpHistory = {
                 times: [], playerHP: [], enemyHP: [],
-                playerCDR: [], enemyCDR: [], playerATK: [], enemyATK: []
+                playerCDR: [], enemyCDR: [], playerATK: [], enemyATK: [],
+                playerAvianProcs: [], enemyAvianProcs: []
             };
             const skillEvents = { player: [], enemy: [] };
             let lastSampleTime = -1;
+            let playerAvianProcFlag = false;
+            let enemyAvianProcFlag = false;
 
             function log(msg, type = '') {
                 battleLog.push({ time: time.toFixed(2), msg, type });
@@ -2597,6 +2602,10 @@
                     // ATK as % of base
                     hpHistory.playerATK.push((player.atk / player.baseATK * 100).toFixed(1));
                     hpHistory.enemyATK.push((enemy.atk / enemy.baseATK * 100).toFixed(1));
+                    hpHistory.playerAvianProcs.push(playerAvianProcFlag ? 2 : null);
+                    hpHistory.enemyAvianProcs.push(enemyAvianProcFlag ? 2 : null);
+                    playerAvianProcFlag = false;
+                    enemyAvianProcFlag = false;
                     lastSampleTime = time;
                 }
             }
@@ -3691,6 +3700,7 @@
                     player.avianCount++;
                     const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
                     log(`Player Avian (Bee): ${formatNumber(avianResult.total)}${sn} [${player.avianHPPercent}% ${isMax ? 'Max' : 'Cur'} HP]`, 'damage');
+                    playerAvianProcFlag = true;
                 }
                 if (enemyAvianType === 'timed' && enemy.avianHPPercent > 0 && time >= enemyNextAvian) {
                     enemyNextAvian = time + avianCDRInterval(enemy.avianInterval, enemy, enemyOutburstUntil);
@@ -3703,6 +3713,7 @@
                     enemy.avianCount++;
                     const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
                     log(`Enemy Avian (Bee): ${formatNumber(avianResult.total)}${sn} [${enemy.avianHPPercent}% ${isMax ? 'Max' : 'Cur'} HP]`, 'damage');
+                    enemyAvianProcFlag = true;
                 }
 
                 // Deity (healcount): fires every 16 heals (fixed threshold)
@@ -3715,6 +3726,7 @@
                     player.avianCount++;
                     const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
                     log(`Player Avian (Deity): ${formatNumber(avianResult.total)}${sn} [${player.avianHPPercent}% Cur HP]`, 'damage');
+                    playerAvianProcFlag = true;
                 }
                 if (enemyAvianType === 'healcount' && enemy.avianHPPercent > 0 && enemy.healCount >= 16) {
                     enemy.healCount -= 16;
@@ -3725,6 +3737,7 @@
                     enemy.avianCount++;
                     const sn = avianResult.shielded > 0 ? ` (${formatNumber(avianResult.shielded)} blocked)` : '';
                     log(`Enemy Avian (Deity): ${formatNumber(avianResult.total)}${sn} [${enemy.avianHPPercent}% Cur HP]`, 'damage');
+                    enemyAvianProcFlag = true;
                 }
 
                 // Impulse Penguin (counterbuff): +counter DMG% every interval, up to maxStacks
@@ -3735,6 +3748,7 @@
                         player.counterMult += player.avianHPPercent;
                         player.avianCount++;
                         log(`[Avian] Player Penguin: Counter DMG +${player.avianHPPercent}% (${(playerPenguinStacks * player.avianHPPercent).toFixed(1)}% total, ${playerPenguinStacks}/5)`, 'buff');
+                        playerAvianProcFlag = true;
                     }
                 }
                 if (enemyAvianType === 'counterbuff' && time >= enemyNextPenguin) {
@@ -3744,6 +3758,7 @@
                         enemy.counterMult += enemy.avianHPPercent;
                         enemy.avianCount++;
                         log(`[Avian] Enemy Penguin: Counter DMG +${enemy.avianHPPercent}% (${(enemyPenguinStacks * enemy.avianHPPercent).toFixed(1)}% total, ${enemyPenguinStacks}/5)`, 'buff');
+                        enemyAvianProcFlag = true;
                     }
                 }
 
@@ -3766,6 +3781,7 @@
                     playerLunarHitsNeeded = 10;
                     player.avianCount++;
                     log(`[Avian] Player Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
+                    playerAvianProcFlag = true;
                 }
                 if (enemyAvianType === 'lunarbuff' && time >= enemyNextLunar) {
                     enemyNextLunar = time + avianCDRInterval(enemy.avianInterval, enemy, enemyOutburstUntil);
@@ -3782,6 +3798,7 @@
                     enemyLunarHitsNeeded = 10;
                     enemy.avianCount++;
                     log(`[Avian] Enemy Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
+                    enemyAvianProcFlag = true;
                 }
                 // Expire Lunar Sprite buff
                 if (playerLunarBuffUntil > 0 && playerLunarBuffUntil <= time) {
@@ -4110,6 +4127,36 @@
                 });
             }
 
+            // Avian proc dots
+            if (document.getElementById('togglePlayerAvian').checked) {
+                datasets.push({
+                    label: 'P: Avian Proc',
+                    data: hpHistory.playerAvianProcs,
+                    borderColor: '#ffd43b',
+                    backgroundColor: '#ffd43b',
+                    borderWidth: 0,
+                    fill: false,
+                    showLine: false,
+                    pointRadius: hpHistory.playerAvianProcs.map(v => v !== null ? 5 : 0),
+                    pointStyle: 'circle',
+                    yAxisID: 'y'
+                });
+            }
+            if (document.getElementById('toggleEnemyAvian').checked) {
+                datasets.push({
+                    label: 'E: Avian Proc',
+                    data: hpHistory.enemyAvianProcs,
+                    borderColor: '#f08c00',
+                    backgroundColor: '#f08c00',
+                    borderWidth: 0,
+                    fill: false,
+                    showLine: false,
+                    pointRadius: hpHistory.enemyAvianProcs.map(v => v !== null ? 5 : 0),
+                    pointStyle: 'circle',
+                    yAxisID: 'y'
+                });
+            }
+
             // Skill uptime bars - check which toggles are active
             let skillYLevel = -3;
             const hasAnySkillToggle = document.querySelectorAll('[data-skill-toggle]:checked').length > 0;
@@ -4201,6 +4248,7 @@
                                     if (ctx.dataset.label.includes('HP')) return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
                                     if (ctx.dataset.label.includes('CDR')) return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
                                     if (ctx.dataset.label.includes('ATK')) return ctx.dataset.label + ': ' + ctx.parsed.y + '%';
+                                    if (ctx.dataset.label.includes('Avian Proc')) return ctx.dataset.label;
                                     return ctx.dataset.label;
                                 }
                             }
