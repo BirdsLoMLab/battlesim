@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoM Battle Simulator - Alpha 5.0</title>
+    <title>LoM Battle Simulator - Alpha 5.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -707,8 +707,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 5.0</span></h1>
-            <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking</p>
+            <h1>Legend of Mushroom Battle Simulator <span class="alpha-badge">ALPHA 5.1</span></h1>
+            <p>120-Second PvP Battle Simulation | Screenshot Import (OCR) | HP Tracking | Feb 20, 2026</p>
         </div>
 
         <div class="content">
@@ -1281,8 +1281,8 @@
                             </div>
                         </div>
                         <div class="info-box">
-                            <strong>Bee:</strong> 2.5% Max HP DMG every 5s | <strong>Deity:</strong> 4% Cur HP DMG per 16 heals | <strong>Penguin:</strong> Counter DMG +5%/10s (5 stacks) | <strong>Lunar:</strong> DEF+60%, ATK+10% every 15s for 5s, heals 3.5% lost HP per 10 hits taken<br>
-                            <small style="opacity:0.7">Bee/Deity: HP DMG values use player's own HP. No resistances, cannot crit. Penguin/Lunar: buff-type avians.</small>
+                            <strong>Bee:</strong> 3.67% Max HP DMG every 5s | <strong>Deity:</strong> 4% Cur HP DMG per 16 heals | <strong>Penguin:</strong> Counter DMG +5%/10s (5 stacks) | <strong>Lunar:</strong> DEF+60%, ATK+10% every 15s for 5s, heals 3.5% lost HP per 10 hits taken<br>
+                            <small style="opacity:0.7">Bee/Deity: HP DMG values use player's own HP. No resistances, cannot crit. Penguin/Lunar: buff-type avians. CDR affects time-based avians (Bee/Penguin/Lunar) but not heal-count avians (Deity).</small>
                         </div>
 
                         <div class="subsection-title">Avian Affixes</div>
@@ -1301,7 +1301,7 @@
                             </div>
                             <div class="input-group">
                                 <label><input type="checkbox" id="playerAffixTerminalStrike"> Terminal Strike</label>
-                                <input type="number" id="playerAffixTerminalStrikeChance" value="8" step="1" min="0" max="100" title="% chance per basic ATK to wound (-50% regen/healing 1s)">
+                                <input type="number" id="playerAffixTerminalStrikeChance" value="19.2" step="1" min="0" max="100" title="% chance per basic ATK to wound (-50% regen/healing 1s)">
                             </div>
                         </div>
                         <div class="input-grid">
@@ -1353,7 +1353,7 @@
                             </div>
                             <div class="input-group">
                                 <label><input type="checkbox" id="enemyAffixTerminalStrike"> Terminal Strike</label>
-                                <input type="number" id="enemyAffixTerminalStrikeChance" value="8" step="1" min="0" max="100" title="% chance per basic ATK to wound (-50% regen/healing 1s)">
+                                <input type="number" id="enemyAffixTerminalStrikeChance" value="19.2" step="1" min="0" max="100" title="% chance per basic ATK to wound (-50% regen/healing 1s)">
                             </div>
                         </div>
                         <div class="input-grid">
@@ -1532,6 +1532,14 @@
                                 <label for="playerTalentSkillRegen">Skill Regen %HP</label>
                                 <input type="number" id="playerTalentSkillRegen" value="0.88" step="0.04" min="0" max="0.88">
                             </div>
+                            <div class="input-group">
+                                <label for="playerTalentPalHealing">Pal Heal %HP</label>
+                                <input type="number" id="playerTalentPalHealing" value="0.4" step="0.05" min="0" max="0.4" title="% Max HP healed per 8 pal basic ATKs">
+                            </div>
+                            <div class="input-group">
+                                <label for="playerTalentPalAtkSpd">Pal ATK SPD+</label>
+                                <input type="number" id="playerTalentPalAtkSpd" value="0.1" step="0.01" min="0" max="0.1" title="Bonus pal ATK SPD (base 1.0 per pal, 5 pals). Enter 0 to 0.1.">
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -1588,6 +1596,14 @@
                             <div class="input-group">
                                 <label for="enemyTalentSkillRegen">Skill Regen %HP</label>
                                 <input type="number" id="enemyTalentSkillRegen" value="0.88" step="0.04" min="0" max="0.88">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyTalentPalHealing">Pal Heal %HP</label>
+                                <input type="number" id="enemyTalentPalHealing" value="0.4" step="0.05" min="0" max="0.4" title="% Max HP healed per 8 pal basic ATKs">
+                            </div>
+                            <div class="input-group">
+                                <label for="enemyTalentPalAtkSpd">Pal ATK SPD+</label>
+                                <input type="number" id="enemyTalentPalAtkSpd" value="0.1" step="0.01" min="0" max="0.1" title="Bonus pal ATK SPD (base 1.0 per pal, 5 pals). Enter 0 to 0.1.">
                             </div>
                         </div>
                     </div>
@@ -1862,12 +1878,13 @@
         // Avian companions (from LOM_all_game_data.json)
         // Bee = timed HP% procs, Deity = heal-count triggered HP% procs
         // Penguin = stacking counter DMG buff, Lunar = periodic DEF/ATK buff + lost HP heal
+        // timeBased: true = CDR affects proc interval, false = not affected by CDR
         const AVIANS = {
-            none:    { name: 'None',             type: 'none' },
-            bee:     { name: 'Honeypot Warrior', type: 'timed',     hpPercent: 2.5, interval: 5, isMaxHP: true  },
-            deity:   { name: 'Deity of Purrs',   type: 'healcount', hpPercent: 4,   healThreshold: 16, isMaxHP: false },
-            penguin: { name: 'Impulse Penguin',  type: 'counterbuff', counterPercent: 5, interval: 10, maxStacks: 5 },
-            lunar:   { name: 'Lunar Sprite',     type: 'lunarbuff', healPercent: 3.5, interval: 15, buffDur: 5, defBuff: 0.60, atkBuff: 0.10, hitThreshold: 10 }
+            none:    { name: 'None',             type: 'none',       timeBased: false },
+            bee:     { name: 'Honeypot Warrior', type: 'timed',      hpPercent: 3.67, interval: 5, isMaxHP: true, timeBased: true },
+            deity:   { name: 'Deity of Purrs',   type: 'healcount',  hpPercent: 4,   healThreshold: 16, isMaxHP: false, timeBased: false },
+            penguin: { name: 'Impulse Penguin',  type: 'counterbuff', counterPercent: 5, interval: 10, maxStacks: 5, timeBased: true },
+            lunar:   { name: 'Lunar Sprite',     type: 'lunarbuff',  healPercent: 3.5, interval: 15, buffDur: 5, defBuff: 0.60, atkBuff: 0.10, hitThreshold: 10, timeBased: true }
         };
 
         // Active skills (up to 5 equippable per side)
@@ -2143,6 +2160,8 @@
                 talentCounterRejuv: parseFloat(document.getElementById(prefix + 'TalentCounterRejuv').value) || 0,
                 talentComboHealing: parseFloat(document.getElementById(prefix + 'TalentComboHealing').value) || 0,
                 talentSkillRegen: parseFloat(document.getElementById(prefix + 'TalentSkillRegen').value) || 0,
+                talentPalHealing: parseFloat(document.getElementById(prefix + 'TalentPalHealing').value) || 0,
+                talentPalAtkSpd: parseFloat(document.getElementById(prefix + 'TalentPalAtkSpd').value) || 0,
                 // Battle loop tracking
                 temporalStacks: 0,
 
@@ -2458,18 +2477,29 @@
             let enemyCounterRESDebuff = 0;  // time when debuff expires on enemy
 
             // Avian setup using user-editable values
-            const playerAvianType = (AVIANS[player.avian] || AVIANS.none).type;
-            const enemyAvianType = (AVIANS[enemy.avian] || AVIANS.none).type;
+            const playerAvianDef = AVIANS[player.avian] || AVIANS.none;
+            const enemyAvianDef = AVIANS[enemy.avian] || AVIANS.none;
+            const playerAvianType = playerAvianDef.type;
+            const enemyAvianType = enemyAvianDef.type;
+
+            // CDR-adjusted avian interval helper (only for time-based avians)
+            function avianCDRInterval(baseInterval, who, outburstUntil) {
+                const avDef = who === player ? playerAvianDef : enemyAvianDef;
+                if (!avDef.timeBased) return baseInterval;
+                const cdrMult = (1 - who.cdr / 100) * (outburstUntil > time ? 0.5 : 1);
+                return baseInterval * cdrMult;
+            }
+
             // Bee (timed): interval = seconds between procs
             // Deity (healcount): interval = heal count threshold
-            let playerNextAvian = (playerAvianType === 'timed' && player.avianHPPercent > 0) ? player.avianInterval : Infinity;
-            let enemyNextAvian = (enemyAvianType === 'timed' && enemy.avianHPPercent > 0) ? enemy.avianInterval : Infinity;
+            let playerNextAvian = (playerAvianType === 'timed' && player.avianHPPercent > 0) ? avianCDRInterval(player.avianInterval, player, 0) : Infinity;
+            let enemyNextAvian = (enemyAvianType === 'timed' && enemy.avianHPPercent > 0) ? avianCDRInterval(enemy.avianInterval, enemy, 0) : Infinity;
 
             // Impulse Penguin: counter DMG buff stacking
             let playerPenguinStacks = 0;
-            let playerNextPenguin = playerAvianType === 'counterbuff' ? player.avianInterval : Infinity;
+            let playerNextPenguin = playerAvianType === 'counterbuff' ? avianCDRInterval(player.avianInterval, player, 0) : Infinity;
             let enemyPenguinStacks = 0;
-            let enemyNextPenguin = enemyAvianType === 'counterbuff' ? enemy.avianInterval : Infinity;
+            let enemyNextPenguin = enemyAvianType === 'counterbuff' ? avianCDRInterval(enemy.avianInterval, enemy, 0) : Infinity;
 
             // Lunar Sprite: periodic DEF/ATK buff + lost HP heal on hits taken
             let playerLunarBuffUntil = 0;
@@ -2533,6 +2563,12 @@
             // General regen timing (ticks every 1s)
             let playerNextGeneralRegen = 1;
             let enemyNextGeneralRegen = 1;
+
+            // Pal healing: 5 pals each at (1.0 + talentPalAtkSpd) atks/sec, heals every 8 pal basic atks
+            const playerPalAtkRate = 5 * (1.0 + player.talentPalAtkSpd); // total pal atks per second
+            const enemyPalAtkRate = 5 * (1.0 + enemy.talentPalAtkSpd);
+            let playerPalAtkAccum = 0;
+            let enemyPalAtkAccum = 0;
 
             const battleLog = [];
             let winner = null;
@@ -2745,6 +2781,12 @@
                             log(`  → Terminal Strike! Enemy wounded (heal -50% for 1s)`, 'damage');
                         }
 
+                        // Healing Rate: % chance per basic ATK to heal (Healing Amount % max HP)
+                        if (player.healingRate > 0 && player.healingAmount > 0 && roll(player.healingRate)) {
+                            const healed = heal(player, player.maxHP * (player.healingAmount / 100));
+                            if (healed > 0) log(`  ← Player Healing Proc: ${formatNumber(healed)} [${player.healingAmount}% Max HP]`, 'heal');
+                        }
+
                         // Warbringer passive 1: AoE counter (20%) when hit by basic ATK
                         if (enemy.class === 'warbringer') {
                             const savedCRES = player.counterRES;
@@ -2920,6 +2962,12 @@
                             player.woundedUntil = time + 1;
                             enemy.terminalStrikeCount++;
                             log(`  → Terminal Strike! Player wounded (heal -50% for 1s)`, 'damage');
+                        }
+
+                        // Healing Rate: % chance per basic ATK to heal (Healing Amount % max HP)
+                        if (enemy.healingRate > 0 && enemy.healingAmount > 0 && roll(enemy.healingRate)) {
+                            const healed = heal(enemy, enemy.maxHP * (enemy.healingAmount / 100));
+                            if (healed > 0) log(`  ← Enemy Healing Proc: ${formatNumber(healed)} [${enemy.healingAmount}% Max HP]`, 'heal');
                         }
 
                         // Warbringer passive 1: AoE counter (20%) when hit by basic ATK
@@ -3472,11 +3520,11 @@
                             log(`  → ${who} IMMUNE for ${sk.immunity.duration}s`, 'skill');
                         }
 
-                        // --- Heal (Nature's Renewal: 30% over 5s = heal proc every 0.05s) ---
+                        // --- Heal (Nature's Renewal: 30% over 5s = heal proc every 0.1s) ---
                         if (sk.heal) {
                             sk._healEnd = time + sk.heal.duration;
-                            sk._healNext = time + 0.05;
-                            sk._healPerTick = attacker.maxHP * (sk.heal.percent / 100) / (sk.heal.duration / 0.05);
+                            sk._healNext = time + 0.1;
+                            sk._healPerTick = attacker.maxHP * (sk.heal.percent / 100) / (sk.heal.duration / 0.1);
                         }
 
                         // --- Shield (Shroom Shield) ---
@@ -3553,7 +3601,7 @@
                         }
                         // Tick Heal (Nature's Renewal)
                         if (sk.heal && sk._healEnd > time && sk._healNext <= time) {
-                            sk._healNext = time + 0.05;
+                            sk._healNext = time + 0.1;
                             const healed = heal(attacker, sk._healPerTick);
                             if (healed > 0) log(`${who} ${sk.name} heal: ${formatNumber(healed)}`, 'heal');
                         }
@@ -3633,7 +3681,7 @@
                 // === AVIAN DAMAGE ===
                 // Bee (timed): fires every N seconds
                 if (playerAvianType === 'timed' && player.avianHPPercent > 0 && time >= playerNextAvian) {
-                    playerNextAvian = time + player.avianInterval;
+                    playerNextAvian = time + avianCDRInterval(player.avianInterval, player, playerOutburstUntil);
                     const isMax = (AVIANS[player.avian] || AVIANS.none).isMaxHP !== false;
                     const sourceHP = isMax ? player.maxHP : player.hp;
                     const avianDmg = calcHPDamage(player, enemy, sourceHP, player.avianHPPercent, isMax, pvpFactor);
@@ -3645,7 +3693,7 @@
                     log(`Player Avian (Bee): ${formatNumber(avianResult.total)}${sn} [${player.avianHPPercent}% ${isMax ? 'Max' : 'Cur'} HP]`, 'damage');
                 }
                 if (enemyAvianType === 'timed' && enemy.avianHPPercent > 0 && time >= enemyNextAvian) {
-                    enemyNextAvian = time + enemy.avianInterval;
+                    enemyNextAvian = time + avianCDRInterval(enemy.avianInterval, enemy, enemyOutburstUntil);
                     const isMax = (AVIANS[enemy.avian] || AVIANS.none).isMaxHP !== false;
                     const sourceHP = isMax ? enemy.maxHP : enemy.hp;
                     const avianDmg = calcHPDamage(enemy, player, sourceHP, enemy.avianHPPercent, isMax, pvpFactor);
@@ -3681,7 +3729,7 @@
 
                 // Impulse Penguin (counterbuff): +counter DMG% every interval, up to maxStacks
                 if (playerAvianType === 'counterbuff' && time >= playerNextPenguin) {
-                    playerNextPenguin = time + player.avianInterval;
+                    playerNextPenguin = time + avianCDRInterval(player.avianInterval, player, playerOutburstUntil);
                     if (playerPenguinStacks < 5) {
                         playerPenguinStacks++;
                         player.counterMult += player.avianHPPercent;
@@ -3690,7 +3738,7 @@
                     }
                 }
                 if (enemyAvianType === 'counterbuff' && time >= enemyNextPenguin) {
-                    enemyNextPenguin = time + enemy.avianInterval;
+                    enemyNextPenguin = time + avianCDRInterval(enemy.avianInterval, enemy, enemyOutburstUntil);
                     if (enemyPenguinStacks < 5) {
                         enemyPenguinStacks++;
                         enemy.counterMult += enemy.avianHPPercent;
@@ -3702,7 +3750,7 @@
                 // Lunar Sprite (lunarbuff): periodic DEF/ATK buff + lost HP heal on hits taken
                 // Activate buff every interval (starts at t=0)
                 if (playerAvianType === 'lunarbuff' && time >= playerNextLunar) {
-                    playerNextLunar = time + player.avianInterval;
+                    playerNextLunar = time + avianCDRInterval(player.avianInterval, player, playerOutburstUntil);
                     // Remove previous DEF buff if still active
                     if (playerLunarBuffUntil > time) {
                         player.def -= playerLunarDEFBonus;
@@ -3720,7 +3768,7 @@
                     log(`[Avian] Player Lunar Sprite: DEF +60%, ATK +10% for 5s`, 'buff');
                 }
                 if (enemyAvianType === 'lunarbuff' && time >= enemyNextLunar) {
-                    enemyNextLunar = time + enemy.avianInterval;
+                    enemyNextLunar = time + avianCDRInterval(enemy.avianInterval, enemy, enemyOutburstUntil);
                     if (enemyLunarBuffUntil > time) {
                         enemy.def -= enemyLunarDEFBonus;
                     }
@@ -3764,6 +3812,24 @@
                     if (enemy.hp > enemy.maxHP * 0.5 && enemy.rageSlashStacks < 30) {
                         enemy.rageSlashStacks++;
                         recalcEnemyATK();
+                    }
+                }
+
+                // Pal healing: accumulate pal basic ATKs, heal every 8
+                if (player.talentPalHealing > 0) {
+                    playerPalAtkAccum += playerPalAtkRate * TIME_STEP;
+                    while (playerPalAtkAccum >= 8) {
+                        playerPalAtkAccum -= 8;
+                        const healed = heal(player, player.maxHP * (player.talentPalHealing / 100));
+                        if (healed > 0) log(`[Heal] Player Pal Healing: ${formatNumber(healed)} [${player.talentPalHealing}% Max HP]`, 'heal');
+                    }
+                }
+                if (enemy.talentPalHealing > 0) {
+                    enemyPalAtkAccum += enemyPalAtkRate * TIME_STEP;
+                    while (enemyPalAtkAccum >= 8) {
+                        enemyPalAtkAccum -= 8;
+                        const healed = heal(enemy, enemy.maxHP * (enemy.talentPalHealing / 100));
+                        if (healed > 0) log(`[Heal] Enemy Pal Healing: ${formatNumber(healed)} [${enemy.talentPalHealing}% Max HP]`, 'heal');
                     }
                 }
 
@@ -4218,6 +4284,8 @@
             config.TalentCounterRejuv = document.getElementById(prefix + 'TalentCounterRejuv').value;
             config.TalentComboHealing = document.getElementById(prefix + 'TalentComboHealing').value;
             config.TalentSkillRegen = document.getElementById(prefix + 'TalentSkillRegen').value;
+            config.TalentPalHealing = document.getElementById(prefix + 'TalentPalHealing').value;
+            config.TalentPalAtkSpd = document.getElementById(prefix + 'TalentPalAtkSpd').value;
 
             config.PalWolf = document.getElementById(prefix + 'PalWolf').checked;
             config.PalPup = document.getElementById(prefix + 'PalPup').checked;
@@ -4352,6 +4420,8 @@
             document.getElementById(who + 'TalentCounterRejuv').value = '1';
             document.getElementById(who + 'TalentComboHealing').value = '0';
             document.getElementById(who + 'TalentSkillRegen').value = '0.88';
+            document.getElementById(who + 'TalentPalHealing').value = '0.4';
+            document.getElementById(who + 'TalentPalAtkSpd').value = '0.1';
 
             document.getElementById(who + 'PalWolf').checked = true;
             document.getElementById(who + 'PalPup').checked = true;
@@ -4366,7 +4436,7 @@
             // Avian defaults (Bee for Hunter, Deity for Sage)
             if (isHunter) {
                 document.getElementById(who + 'Avian').value = 'bee';
-                document.getElementById(who + 'AvianHPPercent').value = '3.58';
+                document.getElementById(who + 'AvianHPPercent').value = '3.67';
                 document.getElementById(who + 'AvianInterval').value = '5';
             } else {
                 document.getElementById(who + 'Avian').value = 'deity';
@@ -4382,7 +4452,7 @@
             document.getElementById(who + 'AffixRageSlash').checked = false;
             document.getElementById(who + 'AffixRageSlashATK').value = '0.4';
             document.getElementById(who + 'AffixTerminalStrike').checked = false;
-            document.getElementById(who + 'AffixTerminalStrikeChance').value = '8';
+            document.getElementById(who + 'AffixTerminalStrikeChance').value = '19.2';
             document.getElementById(who + 'AffixNoSpeeding').checked = true;
             document.getElementById(who + 'AffixNoSpeedingReduce').value = '19.2';
 
@@ -4871,8 +4941,26 @@ TIPS:
 • Avoid cropping too tight
 • Stats flagged ❌ are likely misread - verify manually`);
         }
-        // Initialize skill slot UI
+        // Initialize skill slot UI and populate default sage loadout
         buildSkillSlots();
+        function initDefaultLoadout(who) {
+            const defaultSkills = [
+                { id: '27', custom: true, dmg: '8172' },
+                { id: '28', custom: true, dmg: '6538' },
+                { id: '13', custom: true, dmg: '15097' },
+                { id: '33', custom: true, dmg: '4105' },
+                { id: '32', custom: true, dmg: '2257' }
+            ];
+            for (let i = 0; i < 5; i++) {
+                const sk = defaultSkills[i];
+                document.getElementById(who + 'Skill' + i).value = sk.id;
+                document.getElementById(who + 'Skill' + i + 'Custom').checked = sk.custom;
+                document.getElementById(who + 'Skill' + i + 'Dmg').value = sk.dmg;
+                onSkillSlotChange(who, i);
+            }
+        }
+        initDefaultLoadout('player');
+        initDefaultLoadout('enemy');
     </script>
 </body>
 </html>
